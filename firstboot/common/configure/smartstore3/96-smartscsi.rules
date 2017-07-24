@@ -1,0 +1,4 @@
+ACTION=="add", SUBSYSTEM=="block", ENV{ID_VENDOR}=="SCST_BIO", \
+RUN+="/bin/sh -c 'echo 2 > /sys$$DEVPATH/queue/rq_affinity'" \
+RUN+="/bin/sh -c 'echo 60 > /sys$$DEVPATH/device/timeout'" \
+RUN+="/bin/sh -c 'echo 1024 > /sys$$DEVPATH/queue/max_sectors_kb'"

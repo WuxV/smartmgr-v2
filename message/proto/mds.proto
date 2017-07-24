@@ -1,0 +1,1214 @@
+package pds.mds;
+
+import "pds.proto";
+
+// 消息类型
+enum MessageType {
+    BEGINNING_ID = 20000;
+
+    // 磁盘管理
+    GET_DISK_LIST_REQUEST  = 20030;             // 获取磁盘列表
+    GET_DISK_LIST_RESPONSE = 20031;
+	GET_DISK_INFO_REQUEST = 20090;			    //获取磁盘信息
+	GET_DISK_INFO_RESPONSE = 20091;
+    DISK_ADD_REQUEST  = 20040;                  // 增加磁盘
+    DISK_ADD_RESPONSE = 20041;
+    DISK_DROP_REQUEST  = 20070;                 // 删除磁盘
+    DISK_DROP_RESPONSE = 20071;
+    DISK_LED_REQUEST  = 20220;                  // 磁盘点灯
+    DISK_LED_RESPONSE = 20221;
+    HEARTBEAT_DISK_LIST_REQUEST  = 20010;       // IOS向mds上报磁盘列表
+    HEARTBEAT_DISK_LIST_RESPONSE = 20011;
+	GET_DISK_QUALITY_LIST_REQUEST  = 20110;	    // 获取磁盘质量列表
+	GET_DISK_QUALITY_LIST_RESPONSE = 20111;  
+	GET_DISK_QUALITY_INFO_REQUEST  = 20120;	    // 获取磁盘质量信息
+	GET_DISK_QUALITY_INFO_RESPONSE = 20121;	
+	DISK_QUALITY_TEST_REQUEST = 20130;		    // 磁盘质量检测
+	DISK_QUALITY_TEST_RESPONSE = 20131;
+    DISK_REPLACE_REQUEST = 20140;               // 磁盘替换
+    DISK_REPLACE_RESPONSE = 20141;
+
+    // 池管理
+    POOL_ADD_REQUEST  = 20200;                  // 添加存储池
+    POOL_ADD_RESPONSE = 20201;
+    POOL_DROP_REQUEST  = 20202;                 // 删除存储池
+    POOL_DROP_RESPONSE = 20203;
+    POOL_CONFIG_REQUEST  = 20204;               // 存储池配置
+    POOL_CONFIG_RESPONSE = 20205;
+    GET_POOL_LIST_REQUEST  = 20208;             // 获取存储池列表
+    GET_POOL_LIST_RESPONSE = 20209;
+    HEARTBEAT_POOL_LIST_REQUEST  = 20196;       // IOS向mds上报磁盘列表
+    HEARTBEAT_POOL_LIST_RESPONSE = 20197;
+    SET_POOL_DISABLE_REQUEST  = 20232;          // 设置pool为disable
+    SET_POOL_DISABLE_RESPONSE = 20233;
+    POOL_REBUILD_REQUEST  = 20234;              // 重构pool
+    POOL_REBUILD_RESPONSE = 20235;
+    POOL_RESIZE_REQUEST  = 20238;               // 修改pool大小
+    POOL_RESIZE_RESPONSE = 20239;
+
+    // Lun管理
+    LUN_ADD_REQUEST  = 20186;                   // 添加lun
+    LUN_ADD_RESPONSE = 20187;
+    LUN_DROP_REQUEST  = 20188;                  // 删除lun
+    LUN_DROP_RESPONSE = 20189;
+    LUN_ONLINE_REQUEST  = 20210;                // lun online
+    LUN_ONLINE_RESPONSE = 20211;
+    LUN_OFFLINE_REQUEST  = 20212;               // lun offline
+    LUN_OFFLINE_RESPONSE = 20213;
+    LUN_CONFIG_REQUEST  = 20300;                // lun config/del group
+    LUN_CONFIG_RESPONSE = 20301;
+    LUN_ACTIVE_REQUEST  = 20302;                // set lun active
+    LUN_ACTIVE_RESPONSE = 20303;
+    LUN_INACTIVE_REQUEST  = 20304;              // set lun inactive
+    LUN_INACTIVE_RESPONSE = 20305;
+    GET_LUN_LIST_REQUEST  = 20190;              // 获取lun列表
+    GET_LUN_LIST_RESPONSE = 20191;
+    HEARTBEAT_LUN_LIST_REQUEST  = 20194;        // IOS向mds上报LUN列表
+    HEARTBEAT_LUN_LIST_RESPONSE = 20195;
+    LUN_GROUP_ADD_REQUEST  = 20198;             // 添加lun group
+    LUN_GROUP_ADD_RESPONSE = 20199;
+    LUN_GROUP_DROP_REQUEST  = 20246;            // 删除lun group
+    LUN_GROUP_DROP_RESPONSE = 20247;
+    GET_LUN_GROUP_LIST_REQUEST  = 20206;            // 列出lun group
+    GET_LUN_GROUP_LIST_RESPONSE = 20207;            
+
+    // 辅助接口
+    GET_SMARTCACHE_LIST_REQUEST  = 20182;       // 获取SMARTCACHE列表
+    GET_SMARTCACHE_LIST_RESPONSE = 20183;
+    GET_BASEDISK_LIST_REQUEST  = 20184;         // 获取BaseDisk列表
+    GET_BASEDISK_LIST_RESPONSE = 20185;
+    GET_PALCACHE_LIST_REQUEST  = 20192;         // 获取PalCache列表
+    GET_PALCACHE_LIST_RESPONSE = 20193;
+    GET_PALRAW_LIST_REQUEST  = 20236;           // 获取PalRaw列表
+    GET_PALRAW_LIST_RESPONSE = 20237;
+    GET_PALPMT_LIST_REQUEST  = 20240;           // 获取PalPMT列表
+    GET_PALPMT_LIST_RESPONSE = 20241;
+    GET_BASEDEV_LIST_REQUEST  = 20218;          // 获取basedev列表
+    GET_BASEDEV_LIST_RESPONSE = 20219;
+    HEARTBEAT_TARGET_LIST_REQUEST  = 20222;     // ios向mds心跳上报target列表
+    HEARTBEAT_TARGET_LIST_RESPONSE = 20223;
+
+    // 节点管理
+    GET_NODE_INFO_REQUEST  = 20214;             // 获取节点信息
+    GET_NODE_INFO_RESPONSE = 20215;
+    NODE_CONFIG_REQUEST  = 20216;               // 节点配置
+    NODE_CONFIG_RESPONSE = 20217;
+    NODE_ADD_REQUEST  = 20242;               // 节点添加
+    NODE_ADD_RESPONSE = 20243;
+    NODE_DROP_REQUEST  = 20244;               // 节点删除
+    NODE_DROP_RESPONSE = 20245;
+    GET_NODE_LIST_REQUEST  = 20230;             // 获取节点列表
+    GET_NODE_LIST_RESPONSE = 20231;
+
+    // QoS管理
+    QOS_TEMPLATE_ADD_REQUEST       = 20250;    // QoS模板创建 
+    QOS_TEMPLATE_ADD_RESPONSE      = 20251; 
+    QOS_TEMPLATE_DROP_REQUEST      = 20252;    // QoS模板删除
+    QOS_TEMPLATE_DROP_RESPONSE     = 20253;
+    QOS_TEMPLATE_UPDATE_REQUEST    = 20254;    // QoS模板更新
+    QOS_TEMPLATE_UPDATE_RESPONSE   = 20255;
+    LINK_QOS_TEMPLATE_REQUEST      = 20256;    // 关联QoS模板
+    LINK_QOS_TEMPLATE_RESPONSE     = 20257;
+    UNLINK_QOS_TEMPLATE_REQUEST    = 20258;    // 取消关联QoS模板
+    UNLINK_QOS_TEMPLATE_RESPONSE   = 20259;
+    GET_QOS_TEMPLATE_LIST_REQUEST  = 20260;    // 获取QoS模板列表
+    GET_QOS_TEMPLATE_LIST_RESPONSE = 20261;
+    GET_LUN_QOS_LIST_REQUEST       = 20262;    // 计算节点向存储节点发起的获取lun-QoS列表
+    GET_LUN_QOS_LIST_RESPONSE      = 20263;
+
+    // ASM diskgroup管理
+    DISKGROUP_ADD_REQUEST       = 20270;    // 创建asm磁盘组
+    DISKGROUP_ADD_RESPONSE      = 20271;
+    DISKGROUP_DROP_REQUEST      = 20272;    // 删除asm磁盘组
+    DISKGROUP_DROP_RESPONSE     = 20273;
+    GET_DISKGROUP_LIST_REQUEST  = 20274;    // 获取asm磁盘组列表
+    GET_DISKGROUP_LIST_RESPONSE = 20275;
+    DISKGROUP_CONFIG_REQUEST    = 20288;    // 配置asm磁盘组rebalance power
+    DISKGROUP_CONFIG_RESPONSE   = 20289;
+    DISKGROUP_MOUNT_REQUEST     = 20296;    // mount磁盘组
+    DISKGROUP_MOUNT_RESPONSE    = 20297;
+    DISKGROUP_UMOUNT_REQUEST    = 20298;    // umount磁盘组
+    DISKGROUP_UMOUNT_RESPONSE   = 20299;
+
+    // ASM disk管理
+    ASMDISK_ADD_REQUEST             = 20276;    // 添加asm磁盘到asm磁盘组中
+    ASMDISK_ADD_RESPONSE            = 20277;
+    ASMDISK_DROP_REQUEST            = 20278;    // 从asm磁盘组里删除asm磁盘
+    ASMDISK_DROP_RESPONSE           = 20279;
+    ASMDISK_ONLINE_REQUEST          = 20280;    // online asm磁盘
+    ASMDISK_ONLINE_RESPONSE         = 20281;
+    ASMDISK_OFFLINE_REQUEST         = 20282;    // offline asm磁盘
+    ASMDISK_OFFLINE_RESPONSE        = 20283;
+    GET_ASMDISK_LIST_REQUEST        = 20284;    // 获取asm磁盘列表
+    GET_ASMDISK_LIST_RESPONSE       = 20285;
+    HEARTBEAT_ASMDISK_LIST_REQUEST  = 20286;    // 计算节点向存储节点心跳asm磁盘列表
+    HEARTBEAT_ASMDISK_LIST_RESPONSE = 20287;
+
+    // slot管理
+    GET_SLOT_LIST_REQUEST  = 20290;             // 获取槽位列表
+    GET_SLOT_LIST_RESPONSE = 20291;
+    HEARTBEAT_SLOT_LIST_REQUEST = 20292;
+    HEARTBEAT_SLOT_LIST_RESPONSE = 20293;
+
+    // 获取license信息
+    GET_LICENSE_INFO_REQUEST = 20224;           // 获取license信息
+    GET_LICENSE_INFO_RESPONSE = 20225;
+    GET_LICENSE_FILE_REQUEST  = 20226;          // 获取license文件
+    GET_LICENSE_FILE_RESPONSE = 20227;
+    PUT_LICENSE_FILE_REQUEST  = 20228;          // 上传license文件
+    PUT_LICENSE_FILE_RESPONSE = 20229;
+
+    // SRP管理
+    SRP_RESCAN_SCSI_BUS_REQUEST  = 200230;      // 刷新srp bus
+    SRP_RESCAN_SCSI_BUS_RESPONSE = 200231;
+
+    // 配置文件管理
+    UPLOAD_CONF_FILE_REQUEST  = 20400;         //上传配置文件
+    UPLOAD_CONF_FILE_RESPONSE  = 20401;
+
+    // 设置配置文件的第二存储点
+    SET_SECOND_STORAGE_IP_REQUEST = 20402;        //设置配置文件的第二存储点ip地址
+    SET_SECOND_STORAGE_IP_RESPONSE = 20403;
+    GET_SECOND_STORAGE_IP_REQUEST = 20406;        //获取配置文件的第二存储点ip地址
+    GET_SECOND_STORAGE_IP_RESPONSE = 20407;
+
+    //组管理
+    GROUP_ADD_REQUEST  = 20501;             // 添加lun group
+    GROUP_ADD_RESPONSE = 20502;
+    GROUP_DROP_REQUEST  = 20503;            // 删除lun group
+    GROUP_DROP_RESPONSE = 20504;
+    GET_GROUP_LIST_REQUEST  = 20505;        // 列出lun group
+    GET_GROUP_LIST_RESPONSE = 20506;            
+    GROUP_DEL_REQUEST  = 20507;            // 删除 node从lun group
+    GROUP_DEL_RESPONSE = 20508;
+
+    // srbd管理
+    SRBD_INIT_REQUEST   = 20520;              // 配置srbd信息并启动服务
+    SRBD_INIT_RESPONSE  = 20521;              
+    GET_SRBD_INFO_REQUEST  = 20522;           // 获取srbd状态信息
+    GET_SRBD_INFO_RESPONSE = 20523;
+    SRBD_CONFIG_REQUEST  = 20524;             // srbd 配置修改
+    SRBD_CONFIG_RESPONSE = 20525;
+    SRBD_SPLITBRAIN_RECOVERY_REQUEST = 20540;         // srbd 脑裂恢复
+    SRBD_SPLITBRAIN_RECOVERY_RESPONSE = 20541; 
+    
+    // pcs 管理
+    PCS_INIT_REQUEST   = 20530;                 // pcs初始化
+    PCS_INIT_RESPONSE  = 20531;   
+    GET_PCS_INFO_REQUEST   = 20532;             // pcs status
+    GET_PCS_INFO_RESPONSE  = 20533;   
+    PCS_CONFIG_REQUEST   = 20534;               // pcs config
+    PCS_CONFIG_RESPONSE  = 20535;   
+    PCS_DROP_STONITH_REQUEST   = 20536;         // pcs drop
+    PCS_DROP_STONITH_RESPONSE  = 20537;   
+
+
+    ENDING_ID = 25000;
+}
+
+// =============================================
+// 消息体声明
+extend pds.Body {
+    // 磁盘管理
+    optional HeartbeatDiskListRequest heartbeat_disk_list_request   = 20010;
+    optional HeartbeatDiskListResponse heartbeat_disk_list_response = 20011;
+    optional GetDiskListRequest get_disk_list_request   = 20030;
+    optional GetDiskListResponse get_disk_list_response = 20031;
+    optional DiskAddRequest disk_add_request = 20040;
+    optional DiskAddResponse disk_add_response = 20041;
+    optional DiskDropRequest disk_drop_request   = 20070;
+    optional DiskDropResponse disk_drop_response = 20071;
+    optional DiskLedRequest disk_led_request   = 20220;
+    optional DiskLedResponse disk_led_response = 20221;
+    optional GetDiskInfoRequest get_disk_info_request   = 20090;
+    optional GetDiskInfoResponse get_disk_info_response = 20091;
+	optional GetDiskQualityListRequest get_disk_quality_list_request   = 20110;
+	optional GetDiskQualityListResponse get_disk_quality_list_response = 20111;
+	optional GetDiskQualityInfoRequest get_disk_quality_info_request   = 20120;
+	optional GetDiskQualityInfoResponse get_disk_quality_info_response = 20121;
+	optional DiskQualityTestRequest disk_quality_test_request   = 20130;
+	optional DiskQualityTestResponse disk_quality_test_response = 20131;
+    optional DiskReplaceRequest disk_replace_request = 20140;
+    optional DiskReplaceResponse disk_replace_response = 20141;
+
+    // 池管理
+    optional PoolAddRequest pool_add_request   = 20200;
+    optional PoolAddResponse pool_add_response = 20201;
+    optional PoolDropRequest pool_drop_request   = 20202;
+    optional PoolDropResponse pool_drop_response = 20203;
+    optional PoolConfigRequest pool_config_request   = 20204;
+    optional PoolConfigResponse pool_config_response = 20205;
+    optional GetPoolListRequest get_pool_list_request   = 20208;
+    optional GetPoolListResponse get_pool_list_response = 20209;
+    optional HeartbeatPoolListRequest heartbeat_pool_list_request   = 20196;
+    optional HeartbeatPoolListResponse heartbeat_pool_list_response = 20197;
+    optional SetPoolDisableRequest set_pool_disable_request   = 20232;
+    optional SetPoolDisableResponse set_pool_disable_response = 20233;
+    optional PoolRebuildRequest pool_rebuild_request   = 20234;
+    optional PoolRebuildResponse pool_rebuild_response = 20235;
+    optional PoolResizeRequest pool_resize_request   = 20238;
+    optional PoolResizeResponse pool_resize_response = 20239;
+
+    // SmartCache管理
+    optional GetSmartCacheListRequest get_smartcache_list_request   = 20182;
+    optional GetSmartCacheListResponse get_smartcache_list_response = 20183;
+    optional GetBaseDiskListRequest get_basedisk_list_request   = 20184;
+    optional GetBaseDiskListResponse get_basedisk_list_response = 20185;
+    optional GetPalCacheListRequest get_palcache_list_request   = 20192;
+    optional GetPalCacheListResponse get_palcache_list_response = 20193;
+    optional GetPalRawListRequest get_palraw_list_request   = 20236;
+    optional GetPalRawListResponse get_palraw_list_response = 20237;
+    optional GetPalPmtListRequest get_palpmt_list_request   = 20240;
+    optional GetPalPmtListResponse get_palpmt_list_response = 20241;
+    optional GetBasedevListRequest get_basedev_list_request   = 20218;
+    optional GetBasedevListResponse get_basedev_list_response = 20219;
+    optional HeartbeatTargetListRequest heartbeat_target_list_request   = 20222;
+    optional HeartbeatTargetListResponse heartbeat_target_list_response = 20223;
+
+    // group管理
+    optional GroupAddRequest group_add_request  = 20501;
+    optional GroupAddResponse group_add_response = 20502;
+    optional GroupDropRequest group_drop_request   = 20503;
+    optional GroupDropResponse group_drop_response = 20504;
+    optional GetGroupListRequest get_group_list_request   = 20505;
+    optional GetGroupListResponse get_group_list_response = 20506;
+    optional GroupDelRequest group_del_request   = 20507;
+    optional GroupDelResponse group_del_response = 20508;
+
+    // lun管理
+    optional LunAddRequest lun_add_request   = 20186;
+    optional LunAddResponse lun_add_response = 20187;
+    optional LunGroupAddRequest lun_group_add_request  = 20198;
+    optional LunGroupAddResponse lun_group_add_response = 20199;
+    optional LunDropRequest lun_drop_request   = 20188;
+    optional LunDropResponse lun_drop_response = 20189;
+    optional LunGroupDropRequest lun_group_drop_request   = 20246;
+    optional LunGroupDropResponse lun_group_drop_response = 20247;
+    optional LunOnlineRequest lun_online_request   = 20210;
+    optional LunOnlineResponse lun_online_response = 20211;
+    optional LunOfflineRequest lun_offline_request   = 20212;
+    optional LunOfflineResponse lun_offline_response = 20213;
+    optional LunConfigRequest lun_config_request   = 20300;
+    optional LunConfigResponse lun_config_response = 20301;
+    optional LunActiveRequest lun_active_request   = 20302;
+    optional LunActiveResponse lun_active_response = 20303;
+    optional LunInactiveRequest lun_inactive_request   = 20304;
+    optional LunInactiveResponse lun_inactive_response = 20305;
+    optional GetLunListRequest get_lun_list_request   = 20190;
+    optional GetLunListResponse get_lun_list_response = 20191;
+    optional GetLunGroupListRequest get_lun_group_list_request   = 20206;
+    optional GetLunGroupListResponse get_lun_group_list_response = 20207;
+    optional HeartbeatLunListRequest heartbeat_lun_list_request  = 20194;
+    optional HeartbeatLunListResponse heartbeat_lun_list_response = 20195;
+
+    // 节点管理
+    optional GetNodeInfoRequest get_node_info_request   = 20214;
+    optional GetNodeInfoResponse get_node_info_response = 20215;
+    optional NodeConfigRequest node_config_request   = 20216;
+    optional NodeConfigResponse node_config_response = 20217;
+    optional NodeAddRequest node_add_request   = 20242;
+    optional NodeAddResponse node_add_response = 20243;
+    optional NodeDropRequest node_drop_request   = 20244;
+    optional NodeDropResponse node_drop_response = 20245;
+    optional GetNodeListRequest get_node_list_request   = 20230;
+    optional GetNodeListResponse get_node_list_response = 20231;
+
+    // QoS管理
+    optional QosTemplateAddRequest qos_template_add_request   = 20250;
+    optional QosTemplateAddResponse qos_template_add_response = 20251;
+    optional QosTemplateDropRequest qos_template_drop_request   = 20252;
+    optional QosTemplateDropResponse qos_template_drop_response = 20253;
+    optional QosTemplateUpdateRequest qos_template_update_request   = 20254;
+    optional QosTemplateUpdateResponse qos_template_update_response = 20255;
+    optional LinkQosTemplateRequest link_qos_template_request   = 20256;
+    optional LinkQosTemplateResponse link_qos_template_response = 20257;
+    optional UnlinkQosTemplateRequest unlink_qos_template_request   = 20258;
+    optional UnlinkQosTemplateResponse unlink_qos_template_response = 20259;
+    optional GetQosTemplateListRequest get_qos_template_list_request   = 20260;
+    optional GetQosTemplateListResponse get_qos_template_list_response = 20261;
+    optional GetLunQosListRequest get_lun_qos_list_request   = 20262;
+    optional GetLunQosListResponse get_lun_qos_list_response = 20263;
+
+    // ASM 磁盘组管理
+    optional DiskgroupAddRequest diskgroup_add_request = 20270;
+    optional DiskgroupAddResponse diskgroup_add_response = 20271;
+    optional DiskgroupDropRequest diskgroup_drop_request = 20272;
+    optional DiskgroupDropResponse diskgroup_drop_response = 20273;
+    optional GetDiskgroupListRequest get_diskgroup_list_request = 20274;
+    optional GetDiskgroupListResponse get_diskgroup_list_response = 20275;
+    optional DiskgroupConfigRequest diskgroup_config_request = 20288;
+    optional DiskgroupConfigResponse diskgroup_config_response = 20289;
+    optional DiskgroupMountRequest diskgroup_mount_request = 20296;
+    optional DiskgroupMountResponse diskgroup_mount_response = 20297;
+    optional DiskgroupUmountRequest diskgroup_umount_request = 20298;
+    optional DiskgroupUmountResponse diskgroup_umount_response = 20299;
+
+    // ASM 磁盘管理
+    optional ASMDiskAddRequest asmdisk_add_request   = 20276;
+    optional ASMDiskAddResponse asmdisk_add_response = 20277;
+    optional ASMDiskDropRequest asmdisk_drop_request   = 20278;
+    optional ASMDiskDropResponse asmdisk_drop_response = 20279;
+    optional ASMDiskOnlineRequest asmdisk_online_request   = 20280;
+    optional ASMDiskOnlineResponse asmdisk_online_response = 20281;
+    optional ASMDiskOfflineRequest asmdisk_offline_request   = 20282;
+    optional ASMDiskOfflineResponse asmdisk_offline_response = 20283;
+    optional GetASMDiskListRequest get_asmdisk_list_request   = 20284;
+    optional GetASMDiskListResponse get_asmdisk_list_response = 20285;
+    optional HeartbeatASMDiskListRequest heartbeat_asmdisk_list_request   = 20286;
+    optional HeartbeatASMDiskListResponse heartbeat_asmdisk_list_response = 20287;
+
+    // Slot管理
+    optional GetSlotListRequest get_slot_list_request   = 20290;
+    optional GetSlotListResponse get_slot_list_response = 20291;
+    optional HeartbeatSlotListRequest heartbeat_slot_list_request = 20292;
+    optional HeartbeatSlotListResponse heartbeat_slot_list_response = 20293;
+
+    // license管理
+    optional GetLicenseInfoRequest get_license_info_request   = 20224;
+    optional GetLicenseInfoResponse get_license_info_response = 20225;
+    optional GetLicenseFileRequest get_license_file_request   = 20226;
+    optional GetLicenseFileResponse get_license_file_response = 20227;
+    optional PutLicenseFileRequest put_license_file_request   = 20228;
+    optional PutLicenseFileResponse put_license_file_response = 20229;
+
+    // srp 管理
+    optional SRPRescanSCSIBusRequest srp_rescan_scsi_bus_request   = 200230;
+    optional SRPRescanSCSIBusResponse srp_rescan_scsi_bus_response = 200231;
+
+    // 配置文件管理
+    optional UploadConfFileRequest upload_conf_file_request    = 20400;
+    optional UploadConfFileResponse upload_conf_file_response  = 20401;
+
+    //设置配置第二存储点
+    optional SetSecondStorageIpRequest set_second_storage_ip_request   = 20402;
+    optional SetSecondStorageIpResponse set_second_storage_ip_response = 20403;
+    optional GetSecondStorageIpRequest get_second_storage_ip_request   = 20406;
+    optional GetSecondStorageIpResponse get_second_storage_ip_response = 20407;
+
+    // srbd 管理
+    optional SrbdInitRequest srbd_init_request    = 20520;
+    optional SrbdInitResponse  srbd_init_response = 20521;
+    optional GetSrbdInfoRequest get_srbd_info_request    = 20522;
+    optional GetSrbdInfoResponse  get_srbd_info_response = 20523;
+    optional SrbdConfigRequest srbd_config_request    = 20524;
+    optional SrbdConfigResponse  srbd_config_response = 20525;
+    optional SrbdSplitBrainRecoveryRequest srbd_splitbrain_recovery_request = 20540;
+    optional SrbdSplitBrainRecoveryResponse srbd_splitbrain_recovery_response = 20541;
+
+    // pcs 管理
+    optional PcsInitRequest  pcs_init_request  = 20530;   
+    optional PcsInitResponse  pcs_init_response  = 20531;   
+    optional GetPcsInfoRequest  get_pcs_info_request  = 20532; 
+    optional GetPcsInfoResponse  get_pcs_info_response = 20533; 
+    optional PcsConfigRequest  pcs_config_request   = 20534; 
+    optional PcsConfigResponse  pcs_config_response  = 20535; 
+    optional PcsDropStonithRequest  pcs_drop_stonith_request   = 20536; 
+    optional PcsDropStonithResponse  pcs_drop_stonith_response  = 20537; 
+
+
+}
+// =============================================
+// 消息体定义
+// ios向mds心跳磁盘列表
+message HeartbeatDiskListRequest {
+    repeated DiskInfo disk_infos = 1;               // 系统认到的,有盘符的盘
+    repeated RaidDiskInfo raid_disk_infos = 2;      // 所有raid原始盘
+}
+message HeartbeatDiskListResponse {
+}
+// 获取磁盘信息
+message GetDiskInfoRequest {
+    required string node_disk_name = 1;             // 磁盘的带节点逻辑id的逻辑id(su001_hd01)
+}
+message GetDiskInfoResponse {
+    optional DiskInfo disk_info = 2;
+}
+
+// 存储池添加
+message PoolAddRequest {
+    repeated string disk_names = 1;                 // 需要添加到池中的磁盘列表
+    optional uint64 extent = 2;
+    optional uint64 bucket = 3;
+    optional uint64 sippet = 4;
+    optional bool is_variable = 5 [default = false];// 指定Pool是否支持变长
+    optional string pool_name = 6;                  // pool名称，ssd换盘需要，确保pool_name不变
+}
+message PoolAddResponse {
+}
+// 存储池删除
+message PoolDropRequest {
+    required string pool_name = 1;                  // 需要删除的池名称
+}
+message PoolDropResponse {
+}
+// 存储池配置
+message PoolConfigRequest {
+    required string pool_name = 1;
+    optional PoolDirtyThresh dirty_thresh = 2;                  // 脏数据阀值
+    optional POOL_CACHE_MODEL pool_cache_model = 3;             // 存储池cache模式
+    optional bool is_stop_through = 4 [default = false ];       // 是否是停止变through模式
+    optional uint32 sync_level = 5;                             // sync level
+    optional uint32 skip_thresh = 6;                            // 跳过块大小阀值
+}
+message PoolConfigResponse {
+}
+// 获取存储池列表
+message GetPoolListRequest {
+}
+message GetPoolListResponse {
+    repeated PoolInfo pool_infos = 1;
+}
+// ios向mds上报pool列表
+message HeartbeatPoolListRequest {
+    repeated PoolExportInfo pool_export_infos = 1;
+}
+message HeartbeatPoolListResponse {
+}
+// 设置pool disable
+message SetPoolDisableRequest {
+    required string pool_name = 1;
+}
+message SetPoolDisableResponse {
+}
+// 重构pool
+message PoolRebuildRequest {
+    required string pool_name = 1;                      // 存储池的名称
+    repeated string disk_names = 2;                     // 需要使用哪块盘重构
+}
+message PoolRebuildResponse {
+}
+// 修改pool容量
+message PoolResizeRequest {
+    required string pool_name = 1;                      // 存储池的名称
+    required uint32 size = 2;                           // 新容量大小
+}
+message PoolResizeResponse {
+}
+// 获取磁盘列表
+message GetDiskListRequest {
+}
+message GetDiskListResponse {
+    repeated DiskInfo disk_infos = 1;
+    repeated RaidDiskInfo raid_disk_infos = 2;          // 为未配置, 且系统认不到, 仅raid卡能认到的盘
+}
+// 磁盘删除
+message DiskDropRequest {
+    required string disk_name = 1;                      // 磁盘名称
+}
+message DiskDropResponse {
+}
+// 磁盘点灯
+message DiskLedRequest {
+    required string ces_addr = 1;                       // ctl/eid/slot地址
+    required bool is_on = 2;                            // True:点亮, False:关闭
+}
+message DiskLedResponse {
+}
+// 获取smartcache列表
+message GetSmartCacheListRequest {
+}
+message GetSmartCacheListResponse {
+    repeated SmartCacheInfo smartcache_infos = 1;
+}
+// 获取BaseDisk列表
+message GetBaseDiskListRequest {
+}
+message GetBaseDiskListResponse {
+    repeated BaseDiskInfo basedisk_infos = 1;
+}
+// 获取BaseDev列表
+message GetBaseDevListRequest {
+}
+message GetBaseDevListResponse {
+    repeated BaseDevInfo basedev_infos = 1;
+}
+// 获取palcache列表
+message GetPalCacheListRequest {
+}
+message GetPalCacheListResponse {
+    repeated PalCacheInfo palcache_infos = 1;
+}
+// 获取palraw列表
+message GetPalRawListRequest {
+}
+message GetPalRawListResponse {
+    repeated PalRawInfo palraw_infos = 1;
+}
+// 获取palpmt列表
+message GetPalPmtListRequest {
+}
+message GetPalPmtListResponse {
+    repeated PalPmtInfo palpmt_infos = 1;
+}
+// 获取basedev列表
+message GetBasedevListRequest {
+}
+message GetBasedevListResponse {
+    repeated BaseDevInfo basedev_infos = 1;
+}
+// ios向mds心跳上报target列表
+message HeartbeatTargetListRequest {
+    repeated TargetExportInfo target_export_infos = 1;
+}
+message HeartbeatTargetListResponse {
+}
+// 磁盘初始化
+message DiskAddRequest {
+    optional string dev_name = 1;                           // 磁盘盘符
+    optional uint32 partition_count = 2 [default = 1];      // 分区个数
+    optional DISK_TYPE disk_type = 3;                       // 磁盘类型
+    optional string disk_name = 4;                          // 磁盘名称，换盘需要，确保name不变
+}
+message DiskAddResponse {
+}
+// 获取磁盘质量列表
+message GetDiskQualityListRequest {
+}
+message GetDiskQualityListResponse {
+    repeated DiskQualityInfo disk_quality_infos = 1;
+}
+// 获取磁盘质量信息
+message GetDiskQualityInfoRequest {
+	required uint64 t_time = 1; 
+}
+message GetDiskQualityInfoResponse {
+	optional DiskQualityInfo disk_quality_info = 1;
+}
+// 磁盘质量检测
+message DiskQualityTestRequest {
+	required bool force = 1;								// 必须指定
+}
+message DiskQualityTestResponse {
+}
+// 磁盘替换
+message DiskReplaceRequest {
+    required string disk_name = 1;                      // 被替换的磁盘名称
+    required string dev_name = 2;                       // 磁盘盘符
+}
+message DiskReplaceResponse {
+}
+// 添加lun
+message LunAddRequest {
+    optional string lun_name = 1;                       // 如果指定, 则使用指定的名字做lun名
+    required LUN_TYPE lun_type = 2;
+    optional string group_name = 3;                      // 如果指定, 则使用指定lun组
+    optional string node_index = 4;                      // 节点
+    extensions 100 to max;
+}
+message LunAddResponse {
+}
+message LunAddSmartCache {
+    required string data_disk_name = 1;                 // 数据磁盘的逻辑id
+    required string cache_disk_name = 2;                // cache数据磁盘的逻辑id
+}
+message LunAddBaseDisk {
+    required string data_disk_name = 1;                 // 磁盘的带节点逻辑id的逻辑id(su001_hd01p1)
+}
+message LunAddPalCache {
+    required string data_disk_name = 1;                 // 磁盘的带节点逻辑id的逻辑id(su001_hd01p1)
+    required string pool_name = 2;                      // pal-pool名称
+}
+message LunAddPalRaw {
+    required string data_disk_name = 1;                 // 设备的dev名称
+}
+message LunAddPalPmt {
+    required string pool_name = 1;                      // pal-pool名称
+    required uint32 size = 2;                           // pmt lun size
+}
+message LunAddBaseDev {
+    required string dev_name = 1;                       // 设备的dev名称
+}
+// 删除lun
+message LunDropRequest {
+    required string lun_name = 1;
+    optional uint32 rebalance_power = 2;                // 删除asm里的lun可以指定rebalance值
+    optional bool force = 3 [default = false];          // 强制删除lvvote或asm
+}
+message LunDropResponse {
+    optional bool drop_success = 1 [default=false];     // 执行成功，还是正在执行
+}
+
+// 添加lun group
+message LunGroupAddRequest {
+    required string group_name = 1;                       //lun group 名字 node name
+}
+message LunGroupAddResponse {
+}
+
+// 删除lun group
+message LunGroupDropRequest {
+    required string group_name = 1;                       //lun group 名字 node name
+}
+message LunGroupDropResponse {
+}
+
+// 列出lun group
+message GetLunGroupListRequest {
+}
+
+message GetLunGroupListResponse {
+    optional string group_name = 1;
+    repeated NSNodeInfoConf nsnode_infos = 2;  //同配置文件节点列表
+}
+
+// 添加 group
+message GroupAddRequest {
+    required string group_name = 1;                       //group 名字 test
+}
+message GroupAddResponse {
+}
+
+// 删除 group
+message GroupDropRequest {
+    required string group_name = 1;                       //group 名字 test
+}
+message GroupDropResponse {
+}
+
+// 删除 node从group
+message GroupDelRequest {
+    required string group_name = 1;                       //group 名字 test
+    required string node_index = 2;                       //group 名字 test
+}
+message GroupDelResponse {
+}
+
+// 列出 group
+message GetGroupListRequest {
+}
+
+message GetGroupListResponse {
+    repeated GetLunGroupListResponse groups = 1;  //同配置文件节点列表
+}
+
+// 逻辑卷上线
+message LunOnlineRequest {
+    required string lun_name = 1;
+    optional string group_uuid = 2;
+}
+message LunOnlineResponse {
+}
+
+// 逻辑卷配置或取消配置到组里
+message LunConfigRequest {
+    required string lun_name = 1;
+    optional string group_name = 2;                      // 使用group
+    optional string node_index = 3;                      // 使用node
+    optional bool del_group = 4 [default = false];       // 取消lun配置的组
+}
+message LunConfigResponse {
+}
+// 设置lun active
+message LunActiveRequest {
+    required string lun_name = 1;
+    optional uint32 rebalance_power = 2;                // asm新增lun可以指定rebalance值
+    optional bool force = 3 [default = false];          // 强制添加lun到asm里
+}
+message LunActiveResponse {
+}
+// 设置lun inactive
+message LunInactiveRequest {
+    required string lun_name = 1;
+}
+message LunInactiveResponse {
+}
+// 逻辑卷下线
+message LunOfflineRequest {
+    required string lun_name = 1;
+    optional string group_uuid = 2;
+}
+message LunOfflineResponse {
+}
+// 获取lun列表
+message GetLunListRequest {
+    optional string qos_name = 1;
+    optional string group_name = 2;
+}
+message GetLunListResponse {
+    repeated LunInfo lun_infos = 1;
+}
+// IOS向mds上报状态信息
+message HeartbeatLunListRequest {
+    repeated LunExportInfo lun_export_infos = 1;
+}
+message HeartbeatLunListResponse {
+}
+// 节点信息获取
+message GetNodeInfoRequest {
+}
+message GetNodeInfoResponse {
+    optional NodeInfo node_info = 1;
+}
+// 节点配置
+message NodeConfigRequest {
+    optional string node_name = 1;                                  // 节点名称su00X
+    optional string node_index = 2;                                  // 节点序列node01
+    optional string group_name = 3;                                  // 组名称group01
+}
+message NodeConfigResponse {
+}
+// 节点添加
+message NodeAddRequest {
+    required string node_name = 1;                                 
+    optional string group_name = 2;                                 
+}
+message NodeAddResponse {
+}
+// 节点删除
+message NodeDropRequest {
+    required string node_index = 1;                                 
+}
+message NodeDropResponse {
+}
+// 获取节点列表
+message GetNodeListRequest {
+    optional bool is_remove_smartmon = 1;        // 是否去除smartmon节点
+}
+message GetNodeListResponse {
+    repeated NSNodeInfo nsnode_infos = 1;
+}
+// 创建QoS模板
+message QosTemplateAddRequest {
+    required string template_name = 1;
+    required QoSInfo qos_info = 2;
+}
+message QosTemplateAddResponse {
+}
+// 删除QoS模板
+message QosTemplateDropRequest {
+    required string template_name = 1;
+}
+message QosTemplateDropResponse {
+}
+// 更新QoS模板
+message QosTemplateUpdateRequest {
+    required string template_name = 1;
+    required QoSInfo qos_info = 2;
+}
+message QosTemplateUpdateResponse {
+}
+// 关联QoS模板
+message LinkQosTemplateRequest {
+    required string template_name = 1;
+    required string lun_name = 2;
+}
+message LinkQosTemplateResponse {
+}
+// 取消关联QoS模板
+message UnlinkQosTemplateRequest {
+    required string lun_name = 1;            // 逻辑卷的逻辑名称, 不是uuid
+}
+message UnlinkQosTemplateResponse {
+}
+// 获取QoS模板列表
+message GetQosTemplateListRequest {
+}
+message GetQosTemplateListResponse {
+    repeated QosTemplateInfo qos_template_infos = 1;
+}
+// 获取QoS模板信息
+message GetQosTemplateInfoRequest {
+    required string template_name = 1;
+}
+message GetQosTemplateInfoResponse {
+    optional QosTemplateInfo qos_template_info = 1;
+}
+// 获取lun-QoS列表
+message GetLunQosListRequest {
+}
+message GetLunQosListResponse {
+    repeated LunQoSInfo lun_qos_infos = 1;
+}
+// 创建磁盘组
+message DiskgroupAddRequest {
+    required string diskgroup_name = 1;                     // 磁盘组名称
+    repeated string asmdisk_paths = 2;                      // 磁盘完整路径,可以是多个
+    optional string redundancy = 3 [default="external"];    // 磁盘冗余级别，有external、normal、high三种
+    optional string compatible_asm = 4 [default="10.1"];    // 兼容asm版本
+    optional string compatible_rdbms = 5 [default="10.1"];  // 兼容数据库版本
+    repeated string failgroups = 6;                         // 故障组,可以是多个
+}
+message DiskgroupAddResponse {
+}
+// 删除磁盘组
+message DiskgroupDropRequest {
+    required string diskgroup_name = 1;
+}
+message DiskgroupDropResponse {
+}
+// 获取磁盘组列表
+message GetDiskgroupListRequest {
+}
+message GetDiskgroupListResponse {
+    repeated DiskgroupInfo diskgroup_infos = 1;
+}
+// 修改磁盘组平衡速度
+message DiskgroupConfigRequest {
+    required string diskgroup_name = 1;
+    required uint32 rebalance_power = 2;
+}
+message DiskgroupConfigResponse {
+}
+// mount磁盘组
+message DiskgroupMountRequest {
+    required string diskgroup_name = 1;
+}
+message DiskgroupMountResponse {
+}
+// umount磁盘组
+message DiskgroupUmountRequest {
+    required string diskgroup_name = 1;
+}
+message DiskgroupUmountResponse {
+}
+// 添加ASM磁盘
+message ASMDiskAddRequest {
+    required string asmdisk_path = 1;           // 未被添加到磁盘组的磁盘路径
+    required string diskgroup_name = 2;         // 已存在的磁盘组名称
+    optional bool force = 3 [default = false];  // 是否强制添加 
+    optional uint32 rebalance_power = 4;        // 磁盘组平衡度级别
+    optional string failgroup = 5;              // 故障组名称
+}
+message ASMDiskAddResponse {
+}
+// 删除ASM磁盘
+message ASMDiskDropRequest {
+    required string asmdisk_name = 1;
+    optional bool force = 2 [default = false];  // 是否强制删除
+    optional uint32 rebalance_power = 3;
+}
+message ASMDiskDropResponse {
+}
+// online ASM磁盘
+message ASMDiskOnlineRequest {
+    optional string asmdisk_name = 1;
+    optional string diskgroup_name = 2;
+    optional string failgroup = 3;              // online failgroup 下diskgroup中的所有磁盘
+}
+message ASMDiskOnlineResponse {
+}
+// offline ASM磁盘
+message ASMDiskOfflineRequest {
+    optional string asmdisk_name = 1;
+    optional string diskgroup_name = 2;
+    optional string failgroup = 3;              // online failgroup 下diskgroup中的所有磁盘
+}
+message ASMDiskOfflineResponse {
+}
+// 获取ASM磁盘列表
+message GetASMDiskListRequest {
+}
+message GetASMDiskListResponse {
+    repeated ASMDiskInfo asmdisk_infos = 1;
+}
+// 心跳ASM磁盘列表
+message HeartbeatASMDiskListRequest {
+    required string node_name = 1;
+    repeated ASMDiskInfo asmdisk_infos = 2;
+}
+message HeartbeatASMDiskListResponse {
+}
+// 获取slot列表
+message GetSlotListRequest {
+}
+message GetSlotListResponse {
+    repeated SlotInfo slot_infos = 1;
+}
+// 心跳slot列表
+message HeartbeatSlotListRequest {
+    repeated SlotInfo slot_infos = 1;
+}
+message HeartbeatSlotListResponse {
+}
+// 获取license信息
+message GetLicenseInfoRequest {
+}
+message GetLicenseInfoResponse {
+    repeated SimpleKV kvs = 1;
+}
+// 获取license
+message GetLicenseFileRequest {
+}
+message GetLicenseFileResponse {
+    required string license_base64 = 1;
+}
+// 上传license
+message PutLicenseFileRequest {
+    required string license_base64 = 1;
+}
+message PutLicenseFileResponse {
+}
+// 刷新srp bus
+message SRPRescanSCSIBusRequest {
+}
+message SRPRescanSCSIBusResponse {
+}
+//上传配置文件
+message UploadConfFileRequest {
+    required FileUploadInfo file_upload = 1;
+}
+message UploadConfFileResponse {
+}
+//设置第二存储点
+message SetSecondStorageIpRequest {
+    required string second_storage_ip = 1;
+}  
+message SetSecondStorageIpResponse {
+}
+//获取第二存储点
+message GetSecondStorageIpRequest {
+}  
+message GetSecondStorageIpResponse {
+    optional string second_storage_ip = 1; 
+}
+//srbd init 
+message SrbdInitRequest {
+}
+message SrbdInitResponse {
+}
+// srbd info 
+message GetSrbdInfoRequest {
+}
+message GetSrbdInfoResponse {
+    repeated SrbdInfo srbd_infos = 1;
+}
+//srbd 配置文件修改
+message SrbdConfigRequest {
+    optional SrbdConfig srbd_config = 1;
+    optional string node_role   = 2;
+    optional string node_action = 3;
+}
+message SrbdConfigResponse {
+}
+//srbd 脑裂恢复
+message SrbdSplitBrainRecoveryRequest {
+} 
+message SrbdSplitBrainRecoveryResponse {
+}
+// pcs init
+message PcsInitRequest {
+}
+message PcsInitResponse {
+}
+//pcs info
+message GetPcsInfoRequest {
+}
+message GetPcsInfoResponse {
+    required PcsInfo pcs_info = 1;
+}
+// pcs config
+message PcsConfigRequest {
+    required string action = 1;
+}
+message PcsConfigResponse {
+}
+// pcs drop stonith
+
+message PcsDropStonithRequest {
+    required string stonith_name =1;
+} 
+message PcsDropStonithResponse {
+}
+// =============================================
+// 基本数据结构补充，用于mds外部调用的时候，补充额外逻辑信息
+extend pds.LunInfo { 
+    required uint64 ext_luninfo_size                           = 210;         // lun size
+    optional uint64 ext_luninfo_cache_size                     = 220;         // cache size
+    optional string ext_luninfo_scsiid                         = 230;         // 对应的scsiid, 由t10_dev_id得出
+    optional string ext_luninfo_node_name                      = 240;         // 节点名称
+    required string ext_luninfo_data_dev_name                  = 260;         // 数据盘dev名称(/dev/sdX)
+    optional string ext_luninfo_data_disk_name                 = 270;         // 数据盘名称(hd01p1)
+    optional bool ext_luninfo_data_actual_state = 271 [default = true];       // 数据盘状态
+    repeated string ext_luninfo_cache_dev_name                 = 280;         // 缓存盘dev:名称(/dev/sdX, 如果是pool类型, 此处可能为多个)
+    repeated bool ext_luninfo_cache_actual_state               = 281;         // 缓存盘状态
+    optional string ext_luninfo_cache_disk_name                = 290;         // 缓存盘名称(hd01p1)或pool的名字(pool01)
+    optional PALCACHE_CACHE_MODEL ext_luninfo_palcache_cache_model = 300;     // 如果是pal-cache类型的lun,需要补充cache模式
+}
+extend pds.LunInfo {
+    optional LunExportInfo ext_luninfo_lun_export_info = 200;               // IOS向mds上报的smartscsi的导出信息
+}
+extend pds.PalCacheInfo {
+    optional TargetExportInfo ext_palcache_export_info = 100;               // IOS向mds上报的palcache的导出信息
+}
+extend pds.PalRawInfo {
+    optional TargetExportInfo ext_palraw_export_info = 100;                 // IOS向mds上报的palraw的导出信息
+}
+extend pds.PalPmtInfo {
+    optional TargetExportInfo ext_palpmt_export_info = 100;                 // IOS向mds上报的palpmt的导出信息
+}
+extend pds.PoolInfo {
+    optional PoolExportInfo ext_poolinfo_pool_export_info = 100;            // IOS向mds上报的pal的导出信息
+    optional POOL_CACHE_MODEL ext_poolinfo_pool_cache_model = 110;          // pool的cache model
+    optional uint64 ext_poolinfo_pool_pmt_size = 120;                       // 被pmt占用的size
+}
+extend mds.LunAddRequest {
+    optional LunAddSmartCache ext_lunaddrequest_smartcache = 110;           // 后端为smartcache
+    optional LunAddBaseDisk   ext_lunaddrequest_basedisk = 120;             // 后端为普通磁盘分区
+    optional LunAddPalCache   ext_lunaddrequest_palcache = 130;             // 后端为pal存储池
+    optional LunAddBaseDev    ext_lunaddrequest_basedev = 140;              // 后端为BaseDev
+    optional LunAddPalRaw     ext_lunaddrequest_palraw = 150;               // 后端为PalRaw
+    optional LunAddPalPmt     ext_lunaddrequest_palpmt = 160;               // 后端为PalPmt
+}
+extend pds.DiskInfo {
+    optional uint64 ext_diskinfo_free_size = 110;                           // 磁盘剩余空间
+    repeated SimpleKV ext_diskinfo_diskpart_to_lun_name        = 120;       // 磁盘分区与被使用的Lun的对应关系(diskuuid.partindex=>lunXXX)
+    repeated SimpleKV ext_diskinfo_diskpart_to_lun_name_smartcache = 130;   // 磁盘分区与被使用的Lun的对应关系cache(diskuuid.partindex=>lunXXX)
+    repeated SimpleKV ext_diskinfo_diskpart_to_pool_name       = 140;       // 磁盘分区，与被使用的Pool的对应关系(diskuuid.partindex=>poolXXX)
+}
+extend pds.PoolDiskInfo {
+    optional string ext_pool_disk_info_dev_name = 110;                      // /dev/sdX
+    required string ext_pool_disk_info_disk_name = 120;                     // hdXpY
+    required uint64 ext_pool_disk_info_size = 130;
+}
+// =============================================
+// FIXME:服务内部全局变量数据结构, 不对外使用
+// Node列表, 通过广播发现
+message G_NSNodeList {
+    repeated NSNodeInfo nsnode_infos = 1; 
+}
+
+//已配置节点列表
+message G_NSNodeConfList {
+    repeated NSNodeInfoConf nsnode_infos = 1; 
+}
+
+//组列表
+message G_GroupConfList {
+    repeated GroupInfoConf groups = 1; 
+}
+
+// LUN列表
+message G_LunList {
+    repeated LunInfo lun_infos = 1; 
+}
+// 存储池列表
+message G_PoolList {
+    repeated PoolInfo pool_infos = 1; 
+}
+// 磁盘列表
+message G_DiskList {
+    repeated DiskInfo disk_infos = 1; 
+}
+// Raid磁盘列表
+message G_RaidDiskList {
+    repeated RaidDiskInfo raid_disk_infos = 1; 
+}
+// Smartcache列表
+message G_SmartCacheList {
+    repeated SmartCacheInfo smartcache_infos = 1;
+}
+// BaseDisk列表
+message G_BaseDiskList {
+    repeated BaseDiskInfo basedisk_infos = 1;
+}
+// BaseDev列表
+message G_BaseDevList {
+    repeated BaseDevInfo basedev_infos = 1;
+}
+// PalCache列表
+message G_PalCacheList {
+    repeated PalCacheInfo palcache_infos = 1;
+}
+// PalRaw列表
+message G_PalRawList {
+    repeated PalRawInfo palraw_infos = 1;
+}
+// PalPmt列表
+message G_PalPmtList {
+    repeated PalPmtInfo palpmt_infos = 1;
+}
+message G_QosTemplateList {
+    repeated QosTemplateInfo qos_template_infos = 1;
+}
+message G_ASMDiskList {
+    repeated ASMDiskInfo asmdisk_infos = 1;
+}
+message G_DiskgroupList {
+    repeated DiskgroupInfo diskgroup_infos = 1;
+}
+message G_SlotList {
+    repeated SlotInfo slot_infos = 1;
+}
+// =============================================
+// 错误返回码
+enum RetCode {
+    RC_MDS_LICENSE_FAILED = 20010;                  // license验证失败
+    RC_MDS_GET_LICENSE_FAILED = 20011;              // 获取license失败
+    RC_MDS_PUT_LICENSE_FAILED = 20012;              // 更新license失败
+    RC_MDS_INTERNAL_ERROR = 20070;                  // 内部错误
+    RC_MDS_SERVICE_IS_NOT_READY = 20071;            // 服务未准备好
+    RC_MDS_ERROR_PARAMS = 20140;                    // 参数错误
+    RC_MDS_NOT_SUPPORT = 20141;                     // 不支持
+    RC_MDS_DISK_NOT_EXIST = 20050;                  // 磁盘不存在
+    RC_MDS_DISK_OFFLINE = 20056;                    // 磁盘不在线
+    RC_MDS_DISK_PART_NOT_EXIST = 20051;             // 磁盘分区不存在
+    RC_MDS_DISK_QUALITY_TEST_NO_FORCE = 20052;      // 磁盘质量测试未指定force 
+    RC_MDS_DISK_QUALITY_INFO_NO_TIME  = 20053;      // 未指定磁盘测试时间
+    RC_MDS_DISK_QUALITY_TEST_FAILED = 20054;        // 测试磁盘质量失败
+    RC_MDS_DISK_QUALITY_INFO_FAILED = 20055;        // 获取指定磁盘质量信息失败
+    RC_MDS_CACHE_DISK_NOT_EXIST = 20060;            // cache磁盘不存在
+    RC_MDS_DISK_ALREADY_ADDED = 20100;              // 磁盘已经添加过了
+    RC_MDS_CREATE_DB_DATA_FAILED = 20110;           // 创建数据库记录失败
+    RC_MDS_UPDATE_DB_DATA_FAILED = 20120;           // 更新数据库记录失败
+    RC_MDS_DELETE_DB_DATA_FAILED = 20130;           // 删除数据库记录失败
+    RC_MDS_POOL_NOT_EXIST = 20160;                  // 存储池不存在
+    RC_MDS_DISK_PART_IS_IN_USED = 20170;            // 磁盘分区已经使用
+    RC_MDS_LUN_NOT_EXIST = 20180;                   // Lun不存在
+    RC_MDS_LUN_DROP_FAILED = 20181;                 // Lun删除失败
+    RC_MDS_POOL_IS_USED_BY_LUN = 20190;             // Pool被lun占用
+    RC_MDS_DISK_IS_USED_BY_POOL = 20200;            // 磁盘是否有被pool引用
+    RC_MDS_DISK_IS_USED_BY_LUN = 20210;             // 磁盘是否有被lun引用
+    RC_MDS_LUN_ALREADY_EXIST = 20220;               // 逻辑卷名已经存在
+    RC_MDS_LUN_ALREADY_ONLINE = 20230;              // 逻辑卷已经在线
+    RC_MDS_LUN_ALREADY_OFFLINE = 20240;             // 逻辑卷已经离线
+    RC_MDS_LUN_USED_IN_ASM = 20241;                 // 逻辑卷在asm中使用，不能offline
+    RC_MDS_REFUSE_CONFIG_NODE_NAME = 20250;         // 拒绝配置node-name, 由于有在线的lun导致
+    RC_MDS_POOL_NOT_AVAILABLE = 20260;              // 存储池当前不可用
+    RC_MDS_NODE_FIND_FAIL = 20270;                   //节点查找失败
+    RC_MDS_NODE_ADD_FAIL = 20271;                   //节点添加失败
+    RC_MDS_NODE_DROP_FAIL = 20272;                   //节点删除失败
+    RC_MDS_NODE_HAV_LUN = 20273;                 //节点有相应的lun在应用
+    RC_MDS_GROUP_ADD_FAIL = 20280;                  //lun组添加失败
+    RC_MDS_GROUP_FIND_FAIL = 20281;                 //lun组添加为查找到相应的节点
+    RC_MDS_QOS_TEMPLATE_ALREADY_ADDED = 20274;      // QoS模板已经创建过了
+    RC_MDS_QOS_TEMPLATE_NOT_EXIST = 20275;          // QoS模板不存在
+    RC_MDS_LUN_ALEADY_LINKED_TEMPLATE = 20276;      // 逻辑卷已经关联QoS模板
+    RC_MDS_DELETE_QOS_TEMPLATE_FAILED = 20278;      // QoS模板删除失败
+    RC_MDS_LUN_NOT_LINKED = 20279;                  // 逻辑卷未关联QoS模板
+    RC_MDS_UPLOAD_FILE_FAIL = 20282;                //上传配置文件失败
+    RC_MDS_SET_STORAGE_IP_FAIL = 20283;             //设置存储ip失败
+    RC_MDS_GET_STORAGE_IP_FAIL = 20284;             //获取存储ip失败
+    RC_MDS_GET_GRID_ENV_FAILED = 20290;             // 获取grid环境参数失败         
+    RC_MDS_GET_ASM_DISKGROUP_LIST_FAILED = 20291;   // 获取asm磁盘组列表失败
+    RC_MDS_GET_ASM_DISK_LIST_FAILED = 20292;        // 获取asm磁盘列表失败
+    RC_MDS_DISKGROUP_ADD_FAILED = 20293;            // 创建asm磁盘组失败
+    RC_MDS_DISKGROUP_DROP_FAILED = 20294;           // 删除asm磁盘组失败
+    RC_MDS_ASMDISK_ADD_FAILED = 20295;              // 添加asm磁盘失败
+    RC_MDS_ASMDISK_DROP_FAILED = 20296;             // 删除asm磁盘失败
+    RC_MDS_ASMDISK_ONLINE_FAILED = 20297;           // online asm磁盘失败
+    RC_MDS_ASMDISK_OFFLINE_FAILED = 20298;          // offline asm磁盘失败
+    RC_MDS_LUN_ACTIVE_NOT_ALLOWED = 20299;          // lun active操作不允许
+    RC_MDS_LUN_INACTIVE_NOT_ALLOWED = 20300;        // lun inactive操作不允许
+    RC_MDS_ASMDISK_NOT_EXIST = 20301;               // asm disk不存在
+    RC_MDS_DEVICE_PATH_NOT_EXIST = 20302;           // 设备路径不存在
+    RC_MDS_DISKGROUP_ALREADY_EXIST = 20303;         // asm磁盘组已存在
+    RC_MDS_DISKGROUP_NOT_EXIST = 20304;             // asm磁盘组不存在
+    RC_MDS_LUN_NOT_RECOGNIZED = 20305;              // lun未被计算节点识别到
+    RC_MDS_DISKGROUP_REBALANCE_FAILED = 20306;      // 设置磁盘组rebalance失败
+    RC_MDS_DISKGROUP_MOUNT_FAILED = 20307;          // 磁盘组mount失败
+    RC_MDS_DISKGROUP_UMOUNT_FAILED = 20308;         // 磁盘组umount失败
+    RC_MDS_FAILGROUP_NOT_IN_DISKGROUP = 20309;      // failgroup不在指定的磁盘组里
+    RC_MDS_ASMDISK_ALREADY_ONLINE = 20310;          // asmdisk已经在线
+    RC_MDS_ASMDISK_ALREADY_OFFLINE = 20311;         // asmdisk已经离线
+    RC_MDS_DISKGROUP_ALREADY_MOUNTED = 20312;       // diskgroup已经挂载
+    RC_MDS_DISKGROUP_ALREADY_UMOUNTED = 20313;      // diskgroup已经取消挂载
+    RC_MDS_GET_SLOT_LIST_FAILED = 20321;            // 获取槽位列表失败
+    RC_MDS_GET_SRBD_INFO_FAILED = 20322;            // 获取srbd 信息失败
+    RC_MDS_SRBD_CONFIG_FAILED = 20323;              // 配置srbd 信息失败
+    RC_MDS_SRBD_INIT_FAILED = 20324;                // 初始化srbd配置失败
+    RC_MDS_PCS_INIT_FAILED = 20316;                 // 初始化pcs失败
+    RC_MDS_GET_PCS_INFO_FAILED = 20317;             // 获取pcs 信息失败
+    RC_MDS_PCS_CONFIG_FAILED = 20318;               // pcs action on/off  able/disable失败
+    RC_MDS_PCS_DROP_STONITH_FAILED = 20319;         // pcs drop stonith 失败
+    RC_MDS_SRBD_SPLITBRAIN_RECOVERY_FAILED = 20320; // srbd 脑裂恢复失败
+}

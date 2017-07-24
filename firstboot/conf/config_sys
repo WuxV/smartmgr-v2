@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# 版本信息
+VERSION="1.4.4"
+
+# 日志目录
+LOG_DIR="$ROOT_DIR/log"
+
+# 控制台输出日志
+CONSOLE_OUT="$LOG_DIR/console.log"
+
+# 安装日志
+LOG_OUT="$LOG_DIR/install.log"
+
+# 程序临时文件
+TMP_FILE="/tmp/.firstboot.tmp"
+
+# 修改IP标记
+TMP_FILE_NETWORK="/tmp/.firstboot.network.tmp"
+
+# ISO识别平台的配置文件
+PLATFORM_INFO="/boot/installer/platform"
+
+# 脚本执行程序
+BASH="/bin/bash"

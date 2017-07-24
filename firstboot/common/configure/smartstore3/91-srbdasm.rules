@@ -1,0 +1,1 @@
+KERNEL=="srbd1",OWNER="grid", GROUP="asmadmin", MODE="0660"

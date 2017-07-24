@@ -1,0 +1,2 @@
+ACTION=="add|change",KERNEL=="dm-*", SUBSYSTEM=="block", PROGRAM="/etc/asm_dev_map/smartscsi-disk-map.sh add %k", OWNER:="grid", GROUP:="asmadmin"
+ACTION=="remove",KERNEL=="dm-*", SUBSYSTEM=="block", PROGRAM="/etc/asm_dev_map/smartscsi-disk-map.sh remove %M %m"

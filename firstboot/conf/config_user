@@ -1,0 +1,18 @@
+#!/bin/bash
+# scst.conf中 DEVICE name的前缀
+# 如果为空，则指定为hostname
+SCST_DEVICE_PREFIX=""
+
+# 日志级别
+# DEBUG INFO WARNING ERROR NULL
+LOG_LEVEL="INFO"
+
+# 日志输出类型
+# FILE STDOUT ALL
+LOG_TYPE="ALL"
+
+# smartmgr agent的IP
+SMARTMGR_IP="localhost"
+
+# smartmgr agent的PORT
+SMARTMGR_PORT="7081"

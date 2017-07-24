@@ -1,0 +1,1 @@
+../task.d/node_init.sh

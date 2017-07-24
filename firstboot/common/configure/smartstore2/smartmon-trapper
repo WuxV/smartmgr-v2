@@ -1,0 +1,107 @@
+#!/bin/bash
+# smartmon-trapperd        Startup script for smartmon-trapperd
+#
+# chkconfig: 345 92 83
+# description: smartmon-trapperd service script
+#
+### BEGIN INIT INFO
+# Provides:             smartmon-trapperd
+# Required-Start:       $network
+# Short-Description:    smartmon-trapperd service script
+# Description:          smartmon-trapperd service script
+# Required-Stop:        $network
+# Default-Start:        3 4 5
+# Default-Stop:         0 1 2 6
+### END INIT INFO
+#
+LD_LIBRARY_PATH=":/usr/lib/oracle/12.1/client64/lib/:/usr/lib/oracle/12.1/client64/lib/"
+export LD_LIBRARY_PATH
+
+cur_dir="/opt/smartmon"
+bin="frame/trapper"
+start_smartmon_trapper="sh $cur_dir/$bin --config $cur_dir/files/conf/service.trapper.ini --action start >/dev/null 2>&1"
+stop_smartmon_trapper="sh $cur_dir/$bin --config $cur_dir/files/conf/service.trapper.ini --action stop >/dev/null 2>&1"
+status_smartmon_trapper="sh $cur_dir/$bin --config $cur_dir/files/conf/service.trapper.ini --action status >/dev/null 2>&1"
+
+start_ipmiutil="/etc/init.d/ipmiutil_evt start"
+stop_ipmiutil="/etc/init.d/ipmiutil_evt stop"
+status_ipmiutil="/etc/init.d/ipmiutil_evt status"
+
+lockfile=/var/lock/subsys/smartmon_trapperd
+
+start() {
+    echo "Start $bin"
+	eval "$start_smartmon_trapper"
+	RETVAL=$?
+    if [ $RETVAL -ne 0 ];then
+        echo "Start $bin Error"
+    fi
+    if [ -f /etc/init.d/ipmiutil_evt ];then
+        eval $start_ipmiutil
+    else
+        echo "Nof find ipmiutil please install"
+   
+    fi
+
+	return $RETVAL
+}
+
+stop() {
+    echo "Stop $bin"
+	eval "$stop_smartmon_trapper"
+	RETVAL=$?
+    if [ $RETVAL -ne 0 ];then
+        echo "Stop $bin Error"
+    fi
+    
+    if [ -f /etc/init.d/ipmiutil_evt ];then
+        eval $stop_ipmiutil
+    else
+        echo "Nof find ipmiutil please install"
+   
+    fi
+
+	return $RETVAL
+}
+
+status() {
+	eval "$status_smartmon_trapper"
+	RETVAL=$?
+    if [ $RETVAL -eq 0 ];then
+        echo "Runing"
+    fi
+    if [ $RETVAL -eq 1 ];then
+        echo "Not Runing"
+    fi   
+    
+    if [ -f /etc/init.d/ipmiutil_evt ];then
+        eval "$status_ipmiutil"
+    else
+        echo "Nof find ipmiutil please install"
+   
+    fi
+
+	return $RETVAL
+}
+
+# See how we were called.
+case "$1" in
+  start)
+    start
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|status|restart}"
+    ;;
+esac
+
+exit $RETVAL

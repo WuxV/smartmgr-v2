@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Check we are root
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
+
+version() {
+	rpm -q smartmgr
+}
+
+usage() {
+	echo "Usage: $0 <option>
+Options:
+	start		- start all smartmgr services
+	stop		- stop all smartmgr services
+	restart		- restart all smartmgr services
+	version		- print smartmgr packages version
+"
+}
+
+case "$1" in
+	"start")
+		echo "Start Smartmgr-MDS"      && service smartmgr-mds start
+		echo "Start Smartmgr-IOS"      && service smartmgr-ios start
+		echo "Start Smartmgr-API"      && service smartmgr-api start
+        echo "Start Smartmgr-Watchdog" && service smartmgr-watchdog start
+        ;;
+	"stop")
+        echo "Stop Smartmgr-Watchdog" && service smartmgr-watchdog stop
+		echo "Stop Smartmgr-MDS"      && service smartmgr-mds stop  
+		echo "Stop Smartmgr-IOS"      && service smartmgr-ios stop  
+		echo "Stop Smartmgr-API"      && service smartmgr-api stop  
+        ;;
+	"restart")
+		echo "Restart Smartmgr-MDS"      && service smartmgr-mds restart
+		echo "Restart Smartmgr-IOS"      && service smartmgr-ios restart
+		echo "Restart Smartmgr-API"      && service smartmgr-api restart
+        echo "Restart Smartmgr-Watchdog" && service smartmgr-watchdog restart 
+        ;;
+	"version")
+		version ;;
+	*)
+		usage ;;
+esac
+
+exit 0

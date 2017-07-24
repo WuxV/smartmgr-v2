@@ -1,0 +1,264 @@
+package pds.ios;
+
+import "pds.proto";
+
+// 消息类型
+enum MessageType {
+    BEGINNING_ID = 10000;
+
+    // 磁盘管理
+    DISK_ADD_REQUEST  = 10040;                  // 初始化磁盘
+    DISK_ADD_RESPONSE = 10041;
+    DISK_LED_REQUEST  = 10090;                  // 磁盘点灯
+    DISK_LED_RESPONSE = 10091;
+    DISK_QUALITY_TEST_REQUEST  = 10100;         // 磁盘质量测试 
+    DISK_QUALITY_TEST_RESPONSE = 10101;   
+    GET_DISK_QUALITY_LIST_REQUEST  = 10110;     // 获取磁盘质量列表
+    GET_DISK_QUALITY_LIST_RESPONSE = 10111;
+    GET_DISK_QUALITY_INFO_REQUEST  = 10120;     // 获取磁盘质量信息
+    GET_DISK_QUALITY_INFO_RESPONSE = 10121;
+
+    // LUN管理
+    LUN_ADD_REQUEST  = 10050;                   // 创建lun
+    LUN_ADD_RESPONSE = 10051;
+    LUN_DROP_REQUEST  = 10060;                  // 删除lun
+    LUN_DROP_RESPONSE = 10061;
+    LUN_GROUP_ADD_REQUEST  = 10052;             // 创建lun group
+    LUN_GROUP_ADD_RESPONSE = 10053;
+    LUN_GROUP_DROP_REQUEST  = 10062;            // 删除lun group
+    LUN_GROUP_DROP_RESPONSE = 10063;
+
+    // Pool管理
+    POOL_ADD_REQUEST  = 10070;                  // 创建pool
+    POOL_ADD_RESPONSE = 10071;
+    POOL_DROP_REQUEST  = 10080;                 // 删除pool
+    POOL_DROP_RESPONSE = 10081;
+    POOL_CONFIG_REQUEST  = 10082;               // pool配置
+    POOL_CONFIG_RESPONSE = 10083;
+    POOL_RESIZE_REQUEST  = 10084;               // 更新pool大小
+    POOL_RESIZE_RESPONSE = 10085;
+
+    ENDING_ID = 15000;
+}
+
+// =============================================
+// 消息体声明
+extend pds.Body {
+    // 磁盘管理
+    optional DiskAddRequest disk_add_request   = 10040;
+    optional DiskAddResponse disk_add_response = 10041;
+    optional DiskLedRequest disk_led_request   = 10090;
+    optional DiskLedResponse disk_led_response = 10091;
+    optional DiskQualityTestRequest disk_quality_test_request   = 10100;
+    optional DiskQualityTestResponse disk_quality_test_response = 10101;
+    optional GetDiskQualityListRequest get_disk_quality_list_request   = 10110;
+    optional GetDiskQualityListResponse get_disk_quality_list_response = 10111;
+    optional GetDiskQualityInfoRequest get_disk_quality_info_request   = 10120;
+    optional GetDiskQualityInfoResponse get_disk_quality_info_response = 10121;
+
+    // Lun管理
+    optional LunAddRequest lun_add_request   = 10050;
+    optional LunAddResponse lun_add_response = 10051;
+    optional LunDropRequest lun_drop_request   = 10060;
+    optional LunDropResponse lun_drop_response = 10061;
+    optional LunGroupAddRequest lun_group_add_request   = 10052;
+    optional LunGroupAddResponse lun_group_add_response = 10053;
+    optional LunGroupDropRequest lun_group_drop_request   = 10062;
+    optional LunGroupDropResponse lun_group_drop_response = 10063;
+
+    // Pool管理
+    optional PoolAddRequest pool_add_request   = 10070;
+    optional PoolAddResponse pool_add_response = 10071;
+    optional PoolDropRequest pool_drop_request   = 10080;
+    optional PoolDropResponse pool_drop_response = 10081;
+    optional PoolConfigRequest pool_config_request   = 10082;
+    optional PoolConfigResponse pool_config_response = 10083;
+    optional PoolResizeRequest pool_resize_request   = 10084;
+    optional PoolResizeResponse pool_resize_response = 10085;
+}
+
+// =============================================
+// 消息体定义
+
+
+// 磁盘初始化
+message DiskAddRequest {
+    optional string dev_name = 1;               // 磁盘盘符
+    optional string ces_addr = 2;               // raid地址
+    optional uint32 partition_count = 3 [default = 1];     // 分区个数
+}
+message DiskAddResponse {
+    optional DiskInfo disk_info = 1;            // 创建成功的时候保存创建的结果
+}
+// 磁盘点灯
+message DiskLedRequest {
+    required string ces_addr = 1;               // ctl/eid/slot地址
+    required bool is_on = 2;                    // True:点亮, False:关闭
+    required RAID_TYPE raid_type = 3;           // raid类型
+}
+message DiskLedResponse {
+}
+// 磁盘质量检测
+message DiskQualityTestRequest {
+    repeated DiskInfo disk_infos = 1;           // 初始化过后的磁盘列表
+}
+message DiskQualityTestResponse {
+}
+// 磁盘质量列表
+message GetDiskQualityListRequest {
+}
+message GetDiskQualityListResponse {
+    repeated DiskQualityInfo disk_quality_infos = 1;
+}
+// 磁盘质量信息
+message GetDiskQualityInfoRequest {
+    required uint64 t_time = 1;
+    repeated DiskInfo disk_infos = 2;           // 初始化过后的磁盘列表
+}
+message GetDiskQualityInfoResponse {
+    required DiskQualityInfo disk_quality_info = 1;
+}
+// 创建LUN
+message LunAddRequest {
+    required string node_name = 1;
+    required string lun_id = 2;
+    required string lun_name = 3;
+    required LUN_TYPE lun_type = 4;
+    optional bool keep_res = 5 [default = true];// True:使用已经配置过的资源添加smartscsi,可能需要对应的load, False:重新创建资源后,添加smartscsi
+    repeated string group_name = 6; //如果定义则使用分组
+    extensions 100 to max;
+}
+message LunAddResponse {
+    optional uint64 size = 1;                   // 补充basedev创建成功的lun的size
+    optional uint32 target_pal_id = 2;          // 补充pal资源创建成功的target的pal_id
+    optional string target_id = 3;              // 补充pal资源创建成功的target-id
+}
+extend ios.LunAddRequest { 
+    optional SmartCacheInfo ext_lunaddrequest_smartcache = 110;
+    optional BaseDiskInfo   ext_lunaddrequest_basedisk = 120;
+    optional PalCacheInfo   ext_lunaddrequest_palcache = 130;
+    optional BaseDevInfo    ext_lunaddrequest_basedev = 140;
+    optional PalRawInfo     ext_lunaddrequest_palraw = 150;
+    optional PalPmtInfo     ext_lunaddrequest_palpmt = 160;
+}
+
+// 创建LUN GROUP
+message LunGroupAddRequest {
+    required string node_uuid = 1;
+    repeated string ibguids =2;
+}
+message LunGroupAddResponse {
+}
+
+// 删除lun
+message LunDropRequest {
+    required string node_name = 1;
+    required string lun_id = 2;
+    required string lun_name = 3;
+    required LUN_TYPE lun_type = 4;
+    optional bool keep_res = 5 [default = true];// True:删除smartscsi后, 不删除资源, False:删除smartscsi后, 同时删除资源
+    repeated string group_name = 6; //如果定义则使用分组
+    extensions 100 to max;
+}
+message LunDropResponse {
+    required uint32 exist_lun = 1; //剩余存在的lun数
+}
+extend ios.LunDropRequest { 
+    optional SmartCacheInfo ext_lundroprequest_smartcache = 110;
+    optional BaseDiskInfo   ext_lundroprequest_basedisk = 120;
+    optional PalCacheInfo   ext_lundroprequest_palcache = 130;
+    optional BaseDevInfo    ext_lundroprequest_basedev = 140;
+    optional PalRawInfo     ext_lundroprequest_palraw = 150;
+    optional PalPmtInfo     ext_lundroprequest_palpmt = 160;
+}
+extend pds.PalCacheInfo {
+    required string ext_palcacheinfo_pool_name = 110;
+}
+extend pds.PalPmtInfo {
+    required string ext_palpmtinfo_pool_name = 110;
+}
+
+// 删除lun group
+message LunGroupDropRequest {
+    required string node_uuid = 1;
+}
+
+message LunGroupDropResponse {
+}
+
+// 创建pool
+message PoolAddRequest {
+    required PoolInfo pool_info = 1;            // 池信息
+}
+message PoolAddResponse {
+    optional string pool_id = 1;                                    // 如果创建成功返回pool-id
+    optional PoolExportInfo ext_poolinfo_pool_export_info = 100;    // pal的导出信息
+}
+// 删除pool
+message PoolDropRequest {
+    required PoolInfo pool_info = 1;            // 池信息
+}
+message PoolDropResponse {
+}
+// 存储池配置
+message PoolConfigRequest {
+    required PoolInfo pool_info = 1;
+    optional PoolDirtyThresh dirty_thresh = 2;
+    optional POOL_CACHE_MODEL pool_cache_model = 3;
+    optional bool is_stop_through = 4 [default = false ];       // 是否是停止变through模式
+    optional uint32 sync_level = 5;             // 脏数据刷新速度level
+}
+message PoolConfigResponse {
+}
+// pool修改容量
+message PoolResizeRequest {
+    required PoolInfo pool_info = 1;            // 池信息
+    required uint32 size = 2;                   // 新容量
+}
+message PoolResizeResponse {
+}
+// =============================================
+// 基本数据结构
+// =============================================
+// 错误返回码
+enum RetCode {
+    RC_IOS_SERVICE_IS_NOT_READY = 10010;        // 服务未准备好
+    RC_IOS_ADD_DISK_FAILED = 10011;             // 初始化磁盘失败
+    RC_IOS_DISK_NOT_EXIST = 10020;              // 磁盘不存在
+    RC_IOS_DISKPART_NOT_EXIST = 10021;          // 磁盘分区不存在
+    RC_IOS_ADD_LUN_FAILED = 10030;              // 逻辑卷添加失败
+    RC_IOS_ADD_LUN_GROUP_FAILED = 10031;        // lun组添加失败
+    RC_IOS_DROP_LUN_FAILED = 10040;             // 逻辑卷删除失败
+    RC_IOS_DROP_LUN_GROUP_FAILED = 10041;       // lun组删除失败
+    RC_IOS_PAL_POOL_RUN_FAILED = 10050;         // 执行pool失败
+    RC_IOS_PAL_POOL_SIZE_CALC_FAILED = 10060;   // 计算最大pool大小失败
+    RC_IOS_PAL_DISK_ADD_FAILED = 10070;         // pal磁盘添加失败
+    RC_IOS_PAL_POOL_ADD_FAILED = 10080;         // 创建pool失败
+    RC_IOS_PAL_POOL_LIST_FAILED = 10081;        // 获取pool list失败
+    RC_IOS_PAL_TARGET_ADD_FAILED = 10090;       // 创建target失败
+    RC_IOS_PAL_TARGET_LIST_FAILED = 10091;      // 获取target list失败
+    RC_IOS_PAL_POOL_ADD_DISK_FAILED = 10100;    // pool中添加磁盘失败
+    RC_IOS_PAL_DISK_DROP_FAILED = 10110;        // pal磁盘删除失败
+    RC_IOS_PAL_POOL_DROP_FAILED = 10120;        // 删除pool失败
+    RC_IOS_PAL_TARGET_DROP_FAILED = 10130;      // 删除target失败
+    RC_IOS_PAL_POOL_DROP_DISK_FAILED = 10140;   // pool中添加删除失败
+    RC_IOS_SMARTCACHE_IS_INVALID = 10150;       // smartcache当前不可用
+    RC_IOS_PAL_TARGET_IS_INVALID = 10160;       // pal target当前不可用
+    RC_IOS_DISK_LED_FAILD = 10170;              // 磁盘点灯失败
+    RC_IOS_GET_DISK_LIST = 10180;               // 获取磁盘列表失败
+    RC_IOS_CREATE_SMARTCACHE_FAILED = 10190;    // 创建smartcache失败
+    RC_IOS_DEV_NOT_EXIST = 10200;               // 设备不存在
+    RC_IOS_LIST_SMARTCACHE_FAILED = 10210;      // 获取smartcache列表失败
+    RC_IOS_LUN_NOT_EXIST = 10220;               // 逻辑卷不存在
+    RC_IOS_MAKE_RAID_FAILD = 10230;             // 创建raid失败
+    RC_IOS_GET_TARGET_ID_FAILED = 10240;        // 获取target id失败
+    RC_IOS_GET_DISK_QUALITY_LIST_FAILED = 10250;// 获取磁盘质量列表失败
+    RC_IOS_GET_DISK_QUALITY_INFO_FAILED = 10260;// 获取磁盘质量信息失败
+    RC_IOS_DISK_QUALITY_TEST_FAILED = 10270;    // 测试磁盘质量失败
+    RC_IOS_PAL_POOL_CONFIG_FAILED = 10280;      // 配置pool属性失败
+    RC_IOS_GET_PAL_POOL_STATE_FAILED = 10290;   // 获取pool状态失败
+    RC_IOS_PAL_POOL_RESIZE_FAILED = 10231;      // Pool修改容量失败
+    RC_IOS_PAL_POOL_IS_MIGRATING = 10232;       // Pool正在迁移
+    RC_IOS_ZERO_DEVICE_FAILED = 10233;          // lun路径擦0失败
+    RC_IOS_GET_SLOT_LIST_FAILED = 20310;        // 获取槽位列表失败
+}

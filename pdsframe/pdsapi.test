@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+if [ $# -eq 0 -o "$1" == "-h" -o "$1" == "--help" ];then
+    echo "Usage :" 
+    echo "./pdsapi --config CONFIG_FILE --action {start|stop|status} [--front] "
+    exit 1
+fi
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)""/../clients/api"
+
+python "$DIR/main.py" $*

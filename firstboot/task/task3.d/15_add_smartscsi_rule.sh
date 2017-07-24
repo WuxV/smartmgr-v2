@@ -1,0 +1,1 @@
+../task.d/add_smartscsi_rule.sh

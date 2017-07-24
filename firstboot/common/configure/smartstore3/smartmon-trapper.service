@@ -1,0 +1,14 @@
+[Unit]
+Description=SmartMon Trapper
+After=syslog.target
+After=network.target
+
+[Service]
+Type=forking
+ExecStartPre=/bin/systemctl set-environment LD_LIBRARY_PATH=/usr/lib/oracle/12.1/client64/lib/ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/usr/lib/oracle/12.1/client64/bin/
+PIDFile=/var/run/smartmon-trapper.pid
+ExecStart=/opt/smartmon/frame/trapper  --config /opt/smartmon/files/conf/service.trapper.ini --action start
+ExecStop=/opt/smartmon/frame/trapper  --config /opt/smartmon/files/conf/service.trapper.ini --action stop
+
+[Install]
+WantedBy=multi-user.target

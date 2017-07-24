@@ -1,0 +1,107 @@
+#!/bin/bash
+#
+# pds_api        Startup script for pds_agent
+#
+# chkconfig: 345 92 83
+# description: pds_api service script
+#
+### BEGIN INIT INFO
+# Provides:             pds_api
+# Required-Start:       $network
+# Short-Description:    pds_api service script
+# Description:          pds_api service script
+# Required-Stop:        $network
+# Default-Start:        3 4 5
+# Default-Stop:         0 1 2 6
+### END INIT INFO
+#
+
+test -f /etc/rc.d/init.d/functions && . /etc/rc.d/init.d/functions
+test -f /etc/rc.status && . /etc/rc.status
+
+prog="smartmgr-api"
+
+config="/opt/smartmgr/conf/service.mds.ini"
+
+start_smartmgr_api="/opt/smartmgr/pdsframe/pdsapi --config $config --action start > /dev/null 2>&1"
+stop_smartmgr_api="/opt/smartmgr/pdsframe/pdsapi  --config $config --action stop > /dev/null 2>&1"
+status_smartmgr_api="/opt/smartmgr/pdsframe/pdsapi --config $config --action status > /dev/null 2>&1"
+
+lockfile=/var/lock/subsys/smartmgr-apid
+
+_start() {
+	eval "$start_smartmgr_api"
+	RETVAL=$?
+	return $RETVAL
+}
+
+_stop() {
+	eval "$stop_smartmgr_api"
+	RETVAL=$?
+	return $RETVAL
+}
+
+start() {
+	if [ -f /etc/rc.status ]; then
+		echo -n "Starting $prog: "
+		eval $start_smartmgr_api
+		rc_status -v
+		RETVAL=$?
+	else
+		action $"Starting $prog: " _start
+	fi
+	[ "$RETVAL" = 0 ] && touch $lockfile
+}
+
+stop() {
+	if [ -f /etc/rc.status ]; then
+        echo -n "Stopping $prog: "
+		eval $stop_smartmgr_api
+		rc_status -v
+		RETVAL=$?
+    else
+        action $"Stopping $prog: " _stop
+    fi
+	[ "$RETVAL" = 0 ] && rm -f $lockfile
+}
+
+restartq() {
+	echo "Restarting $prog"
+	stop > /dev/null
+	start > /dev/null
+}
+
+status() {
+	eval "$status_smartmgr_api"
+	RETVAL=$?
+	if [ "$RETVAL" == 0 ] ; then
+		echo "$prog is running..."
+	else
+		echo "$prog is not running"
+	fi
+}
+
+# See how we were called.
+case "$1" in
+  start)
+    start
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  restartq)
+    restartq
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status
+    ;;
+  *)
+    echo $"Usage: $0 {start|stop|status|restart|restartq}"
+    ;;
+esac
+
+exit $RETVAL

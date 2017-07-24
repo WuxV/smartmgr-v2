@@ -1,0 +1,539 @@
+package pds;
+
+// 消息结构
+message Message {
+    required Head head = 1;                     // 消息头部信息
+    optional Body body = 2;                     // 消息体
+    optional ResponseCode rc = 3;               // Response的时候填充返回码
+}
+// 消息头部
+message Head {
+    required uint32 message_type = 1;           // 消息类型
+    required string session = 2;                // session
+    required uint64 flowno = 3;                 // 流水号
+}
+// 返回码结构
+message ResponseCode {
+    required uint32 retcode = 1;
+    optional string message = 2;
+}
+// 消息类型
+enum MessageType {
+    BEGINNING_ID = 5000;
+    ENDING_ID = 10000;
+}
+// =============================================
+// 消息体声明
+message Body {
+    extensions 10000 to max;
+}
+// =============================================
+// 基本数据结构
+// 磁盘头信息
+message DiskHeader {
+    required string uuid = 1;                   // 磁盘UUID
+}
+
+// 节点状态
+enum NODE_STATUS {
+    NODE_UNCONFIGURED = 1;
+    NODE_CONFIGURED = 2;
+    NODE_MISSING = 3;
+}
+
+// 磁盘类型
+enum DISK_TYPE {
+    DISK_TYPE_UNDEFINE = 0;
+    DISK_TYPE_HDD = 10;
+    DISK_TYPE_SSD = 20;
+}
+
+// 磁盘信息
+message DiskInfo {
+    optional string disk_name = 1;              // 磁盘逻辑id(hd01)
+    optional string dev_name = 2;               // 设备路径 /dev/sdx
+    optional DISK_TYPE disk_type = 3 [default = DISK_TYPE_UNDEFINE];           // 设备类型
+    optional uint64 size = 5;                   // 磁盘大小
+    repeated DiskPart diskparts = 6;            // 磁盘分区信息
+    optional DiskHeader header = 7;             // 磁盘盘头信息
+    optional bool actual_state = 8          [default = false];   // 实际状态(online/missing)
+    optional uint64 last_heartbeat_time = 9 [default = 0];       // 最后心跳更新时间
+    optional RaidDiskInfo raid_disk_info = 10;                   // 补充磁盘的raid信息
+    optional NvmeDiskHealthInfo nvme_diskhealth_info = 11;  //添加nvme磁盘的健康检测信息
+
+    extensions 100 to max;
+}
+// Raid类型
+enum RAID_TYPE {
+    RAID_TYPE_MEGARAID = 1;
+    RAID_TYPE_SAS2RAID = 2;
+    RAID_TYPE_HPSARAID = 3;
+}
+// 磁盘raid信息
+message RaidDiskInfo {
+    required RAID_TYPE raid_type = 2;           // raid类型
+    required string ctl = 3;
+    required uint32 eid = 4;
+    required uint32 slot = 5;
+    required string drive_type = 6;             // 物理设备类型 ssd/hdd
+    required string protocol = 7;               // 接口类型sas/sata
+    required string pci_addr = 8;               // raid卡的物理地址
+    required string size = 9;                   // raid卡中看到的大小
+    required string model = 10;
+    required string state = 11;
+    optional string dev_name = 12;              // 如果有设备名称, 则补充设备名
+    optional uint64 last_heartbeat_time = 13 [default = 0];       // 最后心跳更新时间
+    optional string health = 14;
+    optional SsdDiskHealthInfo ssd_diskhealth_info = 15;    //添加ssd磁盘的健康检测信息
+    optional HddDiskHealthInfo hdd_diskhealth_info = 16;    //添加hdd磁盘的健康检测信息
+}
+//添加ssd磁盘的健康检测信息
+message SsdDiskHealthInfo {
+    optional string dev_name = 1;                   //设备名，
+    optional uint64 last_heartbeat_time = 2;        //最后心跳时间
+    optional string life = 3;                       //设备剩余寿命
+    optional string offline_uncorrectable = 4;      //脱机无法校正的扇区计数
+    optional string reallocated_event_count = 5;    //重定位事件计数
+    optional string reallocated_sector_ct = 6;      //重定位磁区计数
+    optional string power_on_hours = 7;             //硬盘加电时间
+    optional string temperature_celsius = 8;        //设备当前温度
+    optional string raw_read_error_rate = 9;        //底层数据读取错误率
+    optional string totallife = 10;                 //设备总的寿命周期
+    optional string media_wearout_indicator = 11;   //介质损耗指标
+    optional string spin_retry_count = 12;          //电机起转重试
+    optional string command_timeout = 13;           //通信超时 
+    optional string uncorrectable_sector_ct = 14;   //无法校正的扇区计数
+    optional string ssd_life_left = 15;             //ssd剩余寿命
+}
+//hdd磁盘的健康检测信息
+message HddDiskHealthInfo {
+    optional string dev_name = 1;                   //设备名
+    optional string verifies_gb = 2;                //
+    optional string life_left = 3;                  //磁盘剩余寿命
+    optional string uncorrected_reads = 4;          //未校正读
+    optional string uncorrected_verifies = 5;       //未校正验证
+    optional string corrected_reads = 6;            //校正读
+    optional string writes_gb = 7;
+    optional string load_cycle_pct_left = 8;        //硬盘加载/卸载次数的剩余百分比
+    optional string load_cycle_count = 9;          //磁头加载计数
+    optional string corrected_writes = 10;         //校正写
+    optional string reallocated_sector_ct = 11;    //重定位磁区技术
+    optional string power_on_hours = 12;           //硬盘加电时间
+    optional string non_medium_errors = 13;        //非媒介错误计数 
+    optional string reads_gb = 14;
+    optional string load_cycle_spec = 15;          //硬盘加载/卸载次数的阀值
+    optional string start_stop_pct_left = 16;      //硬盘主轴开始/停止旋转次数的剩余百分比 
+    optional string uncorrected_writes = 17;       //未校正写
+    optional string start_stop_spec = 18;          //硬盘主轴开始/停止旋转的阀值
+    optional string corrected_verifies = 19;       //校正验证
+    optional string start_stop_cycles = 20;        //硬盘主轴开始/停止旋转的次数
+    optional uint64 last_heartbeat_time = 21;        //最后心跳时间
+}
+//添加nvme磁盘的健康检测信息
+message NvmeDiskHealthInfo {
+    optional int32 life = 1;                      //磁盘剩余寿命
+    optional int32 totallife = 2;                 //设备总的寿命周期
+    optional string health = 3;                   //设备状态
+    optional string media_status = 4;             //存储介质状态
+}
+// 磁盘分区信息
+message DiskPart {
+    required uint32 disk_part = 1;             // 分区索引id
+    required uint64 size = 2;                   // 分区大小
+    optional string dev_name = 3;               // 分区的dev_name(该字段仅用于前端显示, 不参与逻辑处理过程,逻辑处理过程使用disk_part定位)
+    optional uint64 last_heartbeat_time = 4 [default = 0];       // 最后心跳更新时间
+    optional bool actual_state = 5          [default = false];   // 实际状态(online/missing)
+}
+// Disk质量信息
+message DiskQualityInfo {
+    optional uint64 t_time = 1;                         // 测试时间
+    optional uint32 disk_count = 2;                     // 磁盘数量
+    optional string ioengine = 3;                       // io引擎 
+    optional uint32 run_time = 4;                       // 运行时长
+    optional string block_size = 5;                     // 单次io的块文件大小
+    optional uint32 num_jobs = 6;   			        // 测试线程数
+    optional uint32 iodepth = 7;       			        // 队列深度
+    optional bool curr_test = 8 [default = false];      // 标识是否正在测试中
+    repeated QualityTestResult quality_test_result = 9; // 测试结果
+}
+// 测试结果信息
+message QualityTestResult{
+    optional string name = 1;                   // 磁盘名
+    optional string path = 2;                   // 磁盘盘符
+    optional uint32 randread_iops = 3;          // 每秒执行的IO次数
+    optional uint32 read_bw = 4;                // 带宽，每秒的吞吐量
+}
+
+//group信息
+
+message GroupInfo{
+    optional string group_uuid = 1; //是计算节点的uuid
+    optional uint32 group_state = 2; //lun 在此组的计数状态
+}
+// Lun信息
+message LunInfo {
+    required string lun_name = 1;               // lun逻辑id(lun001)
+    required string lun_id = 2;                 // lun id (uuid)
+    required LUN_TYPE lun_type = 3;             // lun类型
+    required bool config_state = 4;             // 配置状态(online/offline)
+    optional bool actual_state = 5          [default = false];   // 实际状态(online/missing)
+    optional string asm_status = 6;            // asm状态(online/active/sync/inactive/offline)
+    optional uint64 last_heartbeat_time = 7 [default = 0];       // 最后心跳更新时间
+    repeated GroupInfo group_info = 8;
+    repeated string group_name = 9;
+    optional string qos_template_id = 10;        // 关联的QoS模板id
+    optional string qos_template_name = 11;     // 关联的QoS模板名称
+    repeated string node_index = 12;            //只做获取信息用
+    extensions 100 to max;
+}
+// TODO: 在此处追加新的LUN类型，同时补充 extend pds.LunInfo对应结构
+enum LUN_TYPE {
+    LUN_TYPE_SMARTCACHE = 1;
+    LUN_TYPE_BASEDISK = 2;
+    LUN_TYPE_PALCACHE = 3;
+    LUN_TYPE_BASEDEV = 4;
+    LUN_TYPE_PALRAW = 5;
+    LUN_TYPE_PALPMT = 6;
+}
+extend pds.LunInfo { 
+    optional string ext_luninfo_basedisk_id = 100;          // 对应BaseDiskInfo
+    optional string ext_luninfo_smartcache_id = 110;        // 对应SmartCacheInfo
+    optional string ext_luninfo_palcache_id = 120;          // 对应PalPalCache
+    optional string ext_luninfo_basedev_id = 130;           // 对应BaseDevInfo
+    optional string ext_luninfo_palraw_id = 140;            // 对应PalRaw
+    optional string ext_luninfo_palpmt_id = 150;            // 对应PalPmt
+}
+// PalCache信息
+message PalCacheInfo {
+    optional string palcache_id = 1;            // palcache id(uuid), 全局唯一, 由pal生成
+    required string palcache_name = 2;          // palcache name
+    optional uint32 pal_id = 3;                 // palcache id(pal给出,局部)
+    required string pool_id = 4;                // 存储池id
+    required string disk_id = 5;                // 磁盘UUID
+    required uint32 disk_part = 6;              // 分区索引
+    optional bool actual_state = 7          [default = false];   // 实际状态(online/missing)
+    optional uint64 last_heartbeat_time = 8 [default = 0];       // 最后心跳更新时间
+
+    extensions 100 to max;
+}
+// PalRaw信息
+message PalRawInfo {
+    optional string palraw_id = 1;              // palraw id(uuid), 全局唯一, 由pal生成
+    required string palraw_name = 2;            // palraw name
+    optional uint32 pal_id = 3;                 // palraw id(pal给出,局部)
+    required string disk_id = 4;                // 磁盘UUID
+    required uint32 disk_part = 5;              // 分区索引
+    optional bool actual_state = 6          [default = false];   // 实际状态(online/missing)
+    optional uint64 last_heartbeat_time = 7 [default = 0];       // 最后心跳更新时间
+
+    extensions 100 to max;
+}
+// PalPmt信息
+message PalPmtInfo {
+    optional string palpmt_id = 1;              // palpmt id(uuid), 全局唯一, 由pal生成
+    required string palpmt_name = 2;            // palpmt name
+    optional uint32 pal_id = 3;                 // palpmt id(pal给出,局部)
+    required string pool_id = 4;                // pool id
+    required uint64 size = 5;                   // 分区索引
+    optional bool actual_state = 6          [default = false];   // 实际状态(online/missing)
+    optional uint64 last_heartbeat_time = 7 [default = 0];       // 最后心跳更新时间
+
+    extensions 100 to max;
+}
+// QoS模板信息
+message QosTemplateInfo {
+    optional string template_id = 1;
+    required string template_name = 2;
+    required QoSInfo qos_info = 3;
+
+    extensions 100 to max;
+}
+
+extend pds.QosTemplateInfo {
+    repeated string lun_names = 100;            // 关联的lun 
+} 
+
+// ASM磁盘组信息
+message DiskgroupInfo {
+    required string diskgroup_name = 1;         // 磁盘组名称
+    required string diskgroup_id = 2;           // 磁盘组唯一编号
+    optional string type = 3;                   // 磁盘组的冗余类型
+    optional string state = 4;                  // 磁盘组的状态
+    optional uint32 offline_disks = 5;          // 磁盘组中OFFLINE状态的磁盘个数
+    optional uint64 total_mb = 6;               // 磁盘组总容量
+    optional uint64 free_mb = 7;                // 磁盘组剩余容量
+    optional uint64 usable_file_mb = 8;         // 可安全使用的空间
+}
+
+// ASM磁盘信息
+message ASMDiskInfo {
+    optional string asmdisk_name = 1;           // 磁盘名
+    optional string asmdisk_id = 2;             // 磁盘编号
+    optional string diskgroup_id = 3;           // 所在磁盘组编号
+    optional string path = 4;                   // 磁盘的完整路径
+    optional string mode_status = 5;            // 磁盘IO全局状态，有ONLINE和OFFLINE两种状态
+    optional string state = 6;                  // 磁盘关于磁盘组的全局状态
+    optional string failgroup = 7;              // 磁盘所属的FAILGROUP，如创建磁盘组时未分配FAILGROUP，则缺省为每个磁盘单独一个FAILGROUP
+    optional int32  total_mb = 8;               // 磁盘总容量
+    optional int32  free_mb = 9;                // 磁盘剩余容量
+    optional string dskname = 10;               // asmdisk_name为空时通过kfed获取到的dskname
+}
+
+// Slot信息
+message SlotInfo {
+    required string slot_id = 1;                // 槽位id，如果是riser板的槽位，则用 riser板id-槽位id 表示
+    required string bus_address = 2;            // 总线地址
+    optional string dev_name = 3;               // 设备名称 
+}
+
+// BaseDev信息
+message BaseDevInfo {
+    required string basedev_id = 1;            // basedev id(uuid)
+    required string dev_name = 3;              // 磁盘dev_name
+    optional uint64 size = 4;                  // lun的size
+}
+// BaseDisk信息
+message BaseDiskInfo {
+    required string basedisk_id = 1;            // basedisk id(uuid)
+    required string disk_id = 3;                // 磁盘UUID
+    required uint32 disk_part = 4;              // 分区索引
+}
+// SmartCache信息
+message SmartCacheInfo {
+    required string smartcache_id = 1;          // smartcahce id(uuid)
+    required string data_disk_id = 3;           // 数据磁盘header.uuid
+    required uint32 data_disk_part = 4;         // 数据磁盘分区索引
+    required string cache_disk_id = 5;          // cache盘uuid
+    required uint32 cache_disk_part = 6;        // cache盘磁盘分区索引
+    repeated SimpleKV params = 7;               // SmartCache的配置信息
+}
+// Pool信息
+message PoolInfo {
+    optional string pool_id = 1;                // 存储池ID, 全局唯一, 由pal生成分配
+    required string pool_name = 2;              // 存储池名称, 节点内部唯一
+    repeated PoolDiskInfo pool_disk_infos = 3;  // 池中所使用的磁盘列表
+    optional uint64 extent = 4;                 // 以下为pool的参数
+    optional uint64 bucket = 5;
+    optional uint64 sippet = 6;
+    optional bool actual_state = 7          [default = false];  // 实际状态(online/missing)
+    optional uint64 last_heartbeat_time = 8 [default = 0];      // 最后心跳更新时间
+    optional PoolDirtyThresh dirty_thresh = 9;                  // pool 脏数据阀值
+    optional bool is_invalid = 10           [default = false];  // 是否已经失效, 一旦disable过, 就需要设置该标记, 用于标示以后不能再使用
+    optional bool is_disable = 11           [default = false];  // 是否被设置为不可用, 在该状态下, 使用disk load raw的方式载入盘, 该字段不持久化
+    optional bool is_rebuild = 12           [default = false];  // 是否是rebuild出来的卷, 使用disk load cache pool的方式载入
+    optional uint32 sync_level = 13         [default = 1];      // pool 脏数据刷新速度等级
+    optional uint32 skip_thresh = 14        [default = 0];      // 跳过io-kb阀值, 该字段实际设置在target上
+    optional bool is_variable = 15          [default = false];  // 指定Pool是否支持变长
+
+    extensions 100 to max;
+}
+message PoolDiskInfo {
+    required string disk_id = 1;                // 磁盘UUID
+    required uint32 disk_part = 2;              // 分区索引
+
+    extensions 100 to max;
+}
+// 简单kv
+message SimpleKV {
+    required string key   = 1;
+    required string value = 2;
+}
+// NameServerNode 名字节点
+message NSNodeInfo {
+    required string node_name = 1;
+    required string listen_ip = 2;
+    required uint32 listen_port = 3;
+    optional string host_name = 4;
+    optional string sys_mode = 5;
+    optional string platform = 6;
+    optional string broadcast_ip = 7;
+    optional uint64 last_broadcast_time = 8;    // 最后广播存活时间
+    optional string node_uuid = 9;
+    optional uint32 node_status = 10;
+    repeated string ibguids = 11; //ib guid
+    optional uint32 lun_group= 12 [default = 0]; //是否配置group
+    optional string node_index =13; //已配置的节点序号
+    optional bool is_smartmon = 14;             // 判断本机是否是smartmon节点
+    optional string group_name= 15 ; //group name
+    extensions 100 to max;
+}
+// Lun和QoS配对的信息
+message LunQoSInfo {
+    required string  lun_id = 1;
+    optional QoSInfo qos_info = 2;
+}
+// QoS信息
+message QoSInfo {
+    optional uint64 read_bps = 1   [default = 0];   // 读带宽
+    optional uint64 read_iops = 2  [default = 0];   // 读iops
+    optional uint64 write_bps = 3  [default = 0];
+    optional uint64 write_iops = 4 [default = 0];
+}
+
+message NodeInfoConf {
+    required string node_uuid = 1;
+    required string node_index = 2;  //已配置的节点序号
+    repeated string node_guids = 3;  //IB GUID 
+    optional string node_name = 4;
+    optional string listen_ip = 5;
+    optional uint32 listen_port = 6;
+}
+
+// 已配置节点信息
+message NSNodeInfoConf {
+    required string node_uuid = 1;
+    required NodeInfoConf node_info =2;
+}
+
+// 已配置组信息
+message GroupInfoConf {
+    required string group_name = 1;
+    repeated string node_uuids = 2; //组成员
+}
+
+// srbd状态描述
+message SrbdInfo {
+    optional string role_status = 1;           // 资源角色状态
+    optional string con_status  = 2;           // 资源连接状态
+    optional string disk_status  = 3;          // 硬盘状态
+    optional string node_srbd_name   = 4;     // node srbd网络name
+    optional string node_srbd_ip  = 5;        // node srbd网络ip
+    optional string node_srbd_netmask = 6;    // node srbd网络掩码
+    optional string node_ipmi_ip      = 7;    // node ipmi ip
+    optional string node_srbd_netcard = 8;    // node srbd使用网络
+    optional string node_passwd = 9;         // node password
+    optional string node_type   = 10;         // node1 or node2
+}
+
+// 修改srbd信息
+message SrbdConfig {
+    required string nodeid     = 1;             // node id
+    required string srbd_key   = 2;            // 修改srbd信息的键
+    required string srbd_value = 3;            // 修改srbd信息的值
+}
+
+// stonith状态描述
+message StonithInfo{
+    optional string stonith_name     = 1;          // stonish name
+    optional string stonith_status   = 2;          // stonish 状态
+}
+
+// pcs node 描述状态
+message PcsNode{
+    optional string node_name    = 1;             // pcs node name
+    optional string node_status  = 2;             // pcs node status
+}
+// pcs状态描述
+message PcsInfo {
+    optional string cluster_name       = 1;          // pcs集群name
+    optional string corosync_status    = 2;          // corosync状态
+    optional string pacemaker_status   = 3;          // pacemaker状态
+    repeated PcsNode pcs_nodes         = 4;          // pcsd节点状态
+    repeated StonithInfo stonith_infos = 5;          // stonith info 
+    optional string stonith_enabled    = 6;          // stonith-enable status
+}
+// 文件内容
+message FileInfo {
+    required string file_name    = 1;
+    required string file_content = 2;
+}
+// 配置文件上传的信息
+message FileUploadInfo {
+    required string node_name  = 1;
+    optional string listen_ip  = 2;
+    repeated FileInfo fileinfo = 3;             // 上传文件信息
+    required bool first_upload = 4;              // 区分第一和第二存储点 
+}
+// lun的统计信息
+message LunStatsInfo {
+    required uint64 rio     = 10;
+    required uint64 rmerge  = 20;
+    required uint64 rsect   = 30;
+    required uint64 ruse    = 40;
+    required uint64 wio     = 50;
+    required uint64 wmerge  = 60;
+    required uint64 wsect   = 70;
+    required uint64 wuse    = 80;
+    required uint64 running = 90;
+    required uint64 use     = 100;
+    required uint64 aveq    = 110;
+}
+// lun的smartscsi的导出信息, 
+message LunExportInfo {
+    required string lun_name = 1;
+    required string t10_dev_id = 2;
+    required uint32 threads_num = 3;
+    required string threads_pool_type = 4;
+    required uint64 io_error = 5;
+    required int32  last_errno = 6;
+    required string filename = 7;
+    required uint64 size_mb = 8;
+    repeated SimpleKV exported = 9;
+    optional LunStatsInfo lun_stats_info = 10;
+    repeated string group_name = 11;
+}
+enum PALCACHE_CACHE_MODEL {
+    PALCACHE_CACHE_MODEL_UNKNOWN = 1;
+    PALCACHE_CACHE_MODEL_WRITEBACK = 2;
+    PALCACHE_CACHE_MODEL_WRITETHROUGH = 3;
+}
+enum POOL_CACHE_MODEL {
+    POOL_CACHE_MODEL_UNKNOWN = 1;
+    POOL_CACHE_MODEL_WRITEBACK = 2;
+    POOL_CACHE_MODEL_WRITETHROUGH = 3;
+    POOL_CACHE_MODEL_MIX = 4;
+}
+enum TARGET_TYPE {
+    TARGET_TYPE_UNKNOWN = 1;
+    TARGET_TYPE_CACHE = 2;
+    TARGET_TYPE_PMT = 3;
+    TARGET_TYPE_RAW = 4;
+}
+// Target的pal实时信息
+message TargetExportInfo {
+    required string target_name = 1;
+    required string target_id = 2;
+    required uint32 pal_id = 3;
+    required TARGET_TYPE type = 4;
+    required string state_str = 5;
+    required PALCACHE_CACHE_MODEL palcache_cache_model = 6;
+}
+// Pool的pal实时信息
+message PoolExportInfo {
+    required string pool_name = 1;
+    required string state_str = 2;
+    optional uint64 valid = 3;
+    optional double p_valid = 4;
+    optional uint64 dirty = 5;
+    optional double p_dirty = 6;
+    optional uint64 error = 7;
+    optional uint64 lower_thresh = 8;
+    optional uint32 p_lower_thresh = 9;
+    optional uint64 upper_thresh = 10;
+    optional uint32 p_upper_thresh = 11;
+    optional uint64 size = 12;
+    optional uint64 max_size = 13;              // pool所在磁盘可以创建的最大的pool容量
+    repeated string dev_name = 14;              // pool所在磁盘dev名称
+    optional uint64 extent = 15;
+    optional uint64 bucket = 16;
+    optional uint64 sippet = 17;
+    required uint64 state = 18;
+    optional string state_exp = 19;             // 通过state转换的对外显示的string类型的state
+    optional bool is_variable = 20;             // 是否变长
+}
+// 节点信息
+message NodeInfo {
+    required string node_name = 1;
+    optional string node_uuid = 2;
+}
+// PoolDirtyThresh
+message PoolDirtyThresh {
+    required uint64 lower = 1;
+    required uint64 upper = 2;
+}
+// =============================================
+// 错误返回码
+enum RetCode {
+    RC_SUCCESS = 0;                             // 成功
+    RC_TIMEOUT = 1;                             // 超时
+}

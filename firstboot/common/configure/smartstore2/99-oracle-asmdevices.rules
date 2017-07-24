@@ -1,0 +1,1 @@
+KERNEL=="dm-*", SUBSYSTEM=="block", PROGRAM="/etc/asm_dev_map/smartscsi-disk-map.sh %k",NAME:="%c", OWNER:="grid", GROUP:="asmadmin"

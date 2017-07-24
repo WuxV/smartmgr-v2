@@ -1,0 +1,2 @@
+ACTION=="add|change",KERNEL=="drbd*", SUBSYSTEM=="block", PROGRAM="/etc/asm_dev_map/drbd-disk-map.sh add %k", OWNER:="grid", GROUP:="asmadmin"
+ACTION=="remove",KERNEL=="drbd*", SUBSYSTEM=="block", PROGRAM="/etc/asm_dev_map/drbd-disk-map.sh remove %M %m"

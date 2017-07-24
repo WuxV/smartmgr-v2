@@ -1,0 +1,143 @@
+#!/bin/bash
+
+############################################################################
+#
+# Script for showing detailed information about SRP initiator connections.
+#
+# Copyright (C) 2013 Phegda, Inc.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, version 2
+# of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+############################################################################
+
+usage() {
+  cat <<EOF
+Usage: $(basename $0) [-i]
+where -i disables displaying the SCSI device ID
+EOF
+}
+
+udev_scsi_id() {
+  local scsi_id
+
+  for scsi_id in /usr/lib/udev/scsi_id /lib/udev/scsi_id; do
+      if [ -e "${scsi_id}" ]; then
+	  break
+      fi
+  done
+  "${scsi_id}" --whitelisted "$@"
+}
+
+# Strip the leading "2" and translate from hex to ASCII
+decode_scsi_id() {
+#  printf "$(echo "${1#2}" | sed 's/\(..\)/\\x\1/g')"
+  printf "$(echo "${1#2}")"
+}
+
+scsi_id() {
+  for f in /dev/disk/by_id/scsi-* /dev/disk/by-id/dm-uuid-mpath-*; do
+    if [ "$(basename $(readlink $f))" = "$1" ]; then
+      decode_scsi_id "$(echo "${f}" | sed -e 's|.*/scsi-||' -e 's|.*/dm-uuid-mpath-||')"
+      return 0
+    fi
+  done
+  for d in /sys/class/block/$1/holders/*; do
+    if scsi_id "$(basename $d)"; then
+       return 0
+    fi
+  done
+  return 1
+}
+
+shopt -s nullglob
+
+show_scsi_id="true"
+parsed_options="$(/usr/bin/getopt :ih "$@")" || { usage; exit 1; }
+set -- $parsed_options
+while [ "$1" != "${1#-}" ]; do
+  case "$1" in
+    '-i') show_scsi_id="false"; shift;;
+    '-h') usage; exit 1;;
+    '--') shift;;
+    *)    usage; exit 1;;
+  esac
+done
+
+if [ $# != 0 ]; then
+  usage
+  exit 1
+fi
+
+echo -n "LUN    dev holders Nn HCA_PCI_addr PCI_lnksta lgid_suffix dgid_suffix SCSI_vendor SCSI_model"
+if [ "$show_scsi_id" = "true" ]; then
+  echo -n " SCSI_ID"
+fi
+echo ""
+for host in $(ls -1d /sys/class/srp_host/host* | sort -n -k1.25); do
+  h="${host#/sys/class/srp_host/host}"
+  for d in /sys/bus/scsi/devices/$h:*; do
+    hcil="$(basename $d)"
+    IFS=":"
+    set -- $hcil
+    unset IFS
+    scsi_channel="$2"
+    scsi_id="$3"
+    scsi_lun="$4"
+    dev="$(ls $d/block)"
+    holders="$(for holder in /sys/class/block/$dev/holders/*; do echo -n "${holder#/sys/class/block/$dev/holders/};"; done)"
+    holders="${holders%;}"
+    if [ -z "$holders" ]; then
+      holders="-"
+    fi
+    ibdev="/sys/class/srp_host/$(dirname $(dirname $(dirname $(readlink /sys/class/srp_host/host$h))))"
+    if [ -e $ibdev/numa_node ]; then
+        pcidev_numa_node="$(<$ibdev/numa_node)"
+    else
+	pcidev_numa_node="N/A"
+    fi
+    pciaddr="$(basename $ibdev)"
+    # Reading scsi_host sysfs attributes may fail during SRP target removal.
+    ldev="$(cat /sys/class/scsi_host/host$h/local_ib_device 2>/dev/null)"
+    lport="$(cat /sys/class/scsi_host/host$h/local_ib_port 2>/dev/null)"
+    if [ -n "$ldev" -a -n "$lport" ]; then
+      lgid="$(</sys/class/infiniband/$ldev/ports/$lport/gids/0)"
+    else
+      lgid="?"
+    fi
+    dgid="$(cat /sys/class/scsi_host/host$h/orig_dgid 2>/dev/null)"
+    if [ -z "$dgid" ]; then
+      dgid="?"
+    fi
+    pciaddr2="${pciaddr//:/_}"
+    pciaddr2="${pciaddr2//./_}"
+    if ! set | grep -q "^lnksta_${pciaddr2}="; then
+      eval lnksta_${pciaddr2}=\""$(lspci -vvv -s ${pciaddr} 2>&1 | sed -n 's/^[[:blank:]]*LnkSta:[[:blank:]]*Speed[[:blank:]]*\([^,]*\),[[:blank:]]*Width[[:blank:]]*\([^,]*\),.*/\1\2/p')"\"
+    fi
+    eval lnksta=\""\$lnksta_${pciaddr2}"\"
+    if [ -z "$lnksta" ]; then
+      lnksta="?"
+    fi
+    vendor_and_model="$(grep -A1 "Host: scsi$h Channel: $(printf %02d $scsi_channel) Id: $(printf %02d $scsi_id) Lun: $(printf %02d $scsi_lun)" /proc/scsi/scsi | sed -n 's/^  Vendor: \(.*\) Model: \(.*\) *Rev:.*/\1 \2/p')"
+    # Strip trailing spaces
+    while [ "${vendor_and_model}" != "${vendor_and_model% }" ]; do
+      vendor_and_model="${vendor_and_model% }"
+    done
+    echo -n "$hcil $dev $holders ${pcidev_numa_node} ${pciaddr} ${lnksta} ${lgid#fe80:0000:0000:0000:} ${dgid#fe80:0000:0000:0000:}" "${vendor_and_model}"
+    if [ "$show_scsi_id" = "true" ]; then
+      scsi_id="$(scsi_id $dev)"
+      if [ -z "$scsi_id" ]; then
+        scsi_id="$(decode_scsi_id $(udev_scsi_id /dev/$dev))"
+      fi
+      echo -n " ${scsi_id:-?}"
+    fi
+    echo ""
+  done
+done

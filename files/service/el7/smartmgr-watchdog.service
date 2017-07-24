@@ -1,0 +1,9 @@
+[Unit]
+Description=SmartMgr-Watchdog
+After=network.target
+
+[Service]
+ExecStart=/opt/smartmgr/bin/smartmgrwatchdog
+
+[Install]
+WantedBy=multi-user.target

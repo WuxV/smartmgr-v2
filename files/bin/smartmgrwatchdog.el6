@@ -1,0 +1,23 @@
+#!/bin/bash
+
+interval=8
+
+chk_status() {
+    service $name status >/dev/null 2>&1
+    return $?
+}
+
+chk_service() {
+    local name=$1
+    if ! `chk_status $name`; then
+        echo "Start" $name
+        service $name  start >/dev/null 2>&1
+    fi
+}
+
+while true; do
+    for srv in smartmgr-mds smartmgr-ios;do  
+        chk_service $srv
+    done
+    sleep $interval
+done

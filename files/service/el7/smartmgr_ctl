@@ -1,0 +1,264 @@
+#!/bin/bash
+#
+# smartmgr_ctl        Startup script for smartmgr_ctl
+#
+# chkconfig: 345 94 84
+# description: smartmgr_ctl service script
+#
+### BEGIN INIT INFO
+# Provides:             smartmgr_ctl
+# Required-Start:       $network openibd
+# Short-Description:    smartmgr_ctl service script
+# Description:          smartmgr_ctl service script
+# Required-Stop:        $network
+# Default-Start:        3 4 5
+# Default-Stop:         0 1 2 6
+### END INIT INFO
+
+[ -x /lib/lsb/init-functions ] || exit 1
+SYSTEMD_NO_WRAP="true"
+. /lib/lsb/init-functions
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/sbin:/usr/local/bin
+
+SMARTMGR_CACHE=smartmgr_ctl
+prog="SmartMgr Ctrl"
+log="/var/log/smartmgr/smartmgr_ctl.console.log"
+VAR_SUBSYS_SMARTMGR_CACHE=/var/lock/subsys/$SMARTMGR_CACHE
+PLATFORM_INFO="/boot/installer/platform"
+
+SCST_MODULES="smartscsi ib_srpt smartscsi_vdisk"
+MODULE="smartscsi"
+CACHE_CMD="smartcache"
+SCST_ADMIN="smartscsiadmin"
+
+SRV="all"
+
+# 获取产品信息类型
+GET_PLATFORM_SYS_MODE()
+{
+    echo `GET_PLATFORM_INFO_ATTR "sys_mode"`
+}
+
+# 获取平台信息参数
+GET_PLATFORM_INFO_ATTR()
+{
+    if [ -f $PLATFORM_INFO ]; then
+        echo `cat $PLATFORM_INFO | grep -i ^$1 | awk '{print $2}'`
+        return
+    else
+        echo ""
+        return
+    fi
+}
+
+stop_scst() {
+    rc=0
+    reverse_list=""
+    for m in $SCST_MODULES; do
+        reverse_list="$m $reverse_list"
+    done
+    for m in $reverse_list; do
+        refcnt="`cat /sys/module/$m/refcnt 2>/dev/null`"
+        if [ ! -z "$refcnt" ] && [ "$refcnt" -gt 0 ]; then
+            # Apparently it can happen that the iscsi_scst refcnt is only
+            # decremented a short time after killproc finished. If that
+            # occurs, sleep for a short time.
+            sleep 1
+        fi
+        i=0
+        while [ -e /sys/module/$m/refcnt ] && ! rmmod $m && [ $i -lt 30 ]; do
+            sleep 1
+            i=$((i+1))
+        done
+        if [ -e /sys/module/$m/refcnt ]; then
+            rc=1
+            break
+        fi
+    done
+    # Clear the config in case unloading failed or SCST has been built into the
+    # kernel
+    if [ $rc == 0 -a -e /sys/module/$MODULE ]; then
+        $SCST_ADMIN -noprompt -force -clear_config >/dev/null 2>&1
+    fi
+    return $rc
+}
+
+start_scst() {
+    rc=0
+    if [ -e /sys/module/$MODULE -a -e /sys/module/$MODULE/refcnt ]; then
+        echo -n "Already started"
+        rc=1
+    else
+        for m in $SCST_MODULES; do
+            if [ ! -e /sys/module/$m ]; then
+                if ! modprobe $m; then
+                    echo -n modprobe $m failed.
+                    stop_scst
+                    rc=5
+                    break
+                fi
+            fi
+        done
+    fi
+    return $rc
+}
+
+# 载入ipmi模块
+# XXX: 不用检查载入成功失败
+load_ipmi() {
+    ipmi="ipmi_devintf ipmi_msghandler ipmi_si"
+    for m in $ipmi; do
+        modprobe $m >> $log 2>&1
+    done
+}
+
+status_scst() {
+    rc=0
+    for m in $SCST_MODULES; do
+        if [ ! -e /sys/module/$m ]; then
+            rc=3
+            break
+        fi
+    done
+    return $rc
+}
+
+status_cache() {
+    rc=0
+    cache=`dmsetup ls --target $CACHE_CMD | awk '{print $1}'`
+    if [ "$cache" == "" ];then
+        rc=3
+    else
+        rc=0
+    fi
+    return $rc
+}
+
+start_cache() {
+    return 0
+}
+
+stop_cache() {
+    rc=0
+    for cache in `dmsetup ls --target $CACHE_CMD | awk '{print $1}'`;do
+        echo "Remove cache $cache" >> $log
+        dmsetup remove $cache >> $log 2>&1
+        if [ $? -ne 0 ];then
+            rc=$?
+            break
+        fi
+    done
+    return $rc
+}
+
+status_bondib0(){
+    if [ -f "/sys/class/net/bondib0/operstate" ];then
+        status=`cat /sys/class/net/bondib0/operstate`
+    fi
+    #echo $status
+    if [ "$status" == "up" ];then
+       return 1
+    else
+        return 0
+    fi
+}
+
+start() {
+    # ipmi不分节点类型
+    load_ipmi
+    rc=0
+    if [ "$SYS_MODE" != "DATABASE" ];then
+        if [ "$SRV" == "all" -o "$SRV" == "smartscsi" ]; then
+            echo -n "Starting SMART SCSI : "
+            start_scst
+            [ $rc == 0 ] && log_success_msg || log_failure_msg
+        fi
+
+        if [ "$SRV" == "all" -o "$SRV" == "smartcache" ]; then
+            echo -n "Starting SMART CACHE : "
+            start_cache 
+            [ $? == 0 ] && log_success_msg || log_failure_msg
+        fi
+
+        touch $VAR_SUBSYS_SMARTMGR_CACHE
+    fi
+
+    status_bondib0
+    if [ $? == 0 ];then
+        ifconfig bondib0 up
+    fi
+
+    /usr/local/bin/smartmgr start
+    return $rc
+}
+
+stop() {
+    /usr/local/bin/smartmgr stop
+    rc=0
+    if [ "$SYS_MODE" != "DATABASE" ];then
+        if [ "$SRV" == "all" -o "$SRV" == "smartscsi" ]; then
+            echo -n "Stopping SMART SCSI : "
+            stop_scst 
+            [ $rc == 0 ] && log_success_msg || log_failure_msg
+        fi
+
+        if [ "$SRV" == "all" -o "$SRV" == "smartcache" ]; then
+            echo -n "Stopping SMART CACHE : "
+            stop_cache
+            [ $rc == 0 ] && log_success_msg || log_failure_msg
+        fi
+
+        rm -f $VAR_SUBSYS_SMARTMGR_CACHE
+    fi
+    return 0
+}
+
+restart() {
+    stop 
+    start
+    return 0
+}
+
+status() {
+    if [ "$SYS_MODE" != "DATABASE" ];then
+        if [ "$SRV" == "all" -o "$SRV" == "smartscsi" ]; then
+            echo -n "SMART SCSI status : "
+            status_scst  
+            [ $rc == 0 ] && echo "Running" || echo "Stopped"
+        fi
+    fi
+    return $rc
+}
+
+# 获取机器类型
+SYS_MODE=`GET_PLATFORM_SYS_MODE | tr '[a-z]' '[A-Z]'`
+
+usage() {
+    echo $"Usage: $0 {start|stop|status|restart}"
+    exit 2
+}
+
+case "$1" in
+    start)
+        start
+        rc=$?
+        ;;
+    restart)
+        restart
+        rc=$?
+        ;;
+    stop)
+        stop
+        rc=$?
+        ;;
+    status)
+        status
+        rc=$?
+        ;;
+    *)
+        usage
+        ;;
+esac
+
+exit $rc

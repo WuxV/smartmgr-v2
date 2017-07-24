@@ -1,0 +1,13 @@
+[Unit]
+Description=SmartMgr-API
+After=network.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/smartmgr-api.pid
+ExecStart=/opt/smartmgr/pdsframe/pdsapi --config /opt/smartmgr/conf/service.mds.ini --action start
+ExecStop=/opt/smartmgr/pdsframe/pdsapi --config /opt/smartmgr/conf/service.mds.ini --action stop
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
